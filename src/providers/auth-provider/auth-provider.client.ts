@@ -3,55 +3,84 @@
 import type { AuthProvider } from "@refinedev/core";
 import Cookies from "js-cookie";
 
-const mockUsers = [
-  {
-    name: "John Doe",
-    email: "johndoe@mail.com",
-    roles: ["admin"],
-    avatar: "https://i.pravatar.cc/150?img=1",
-  },
-  {
-    name: "Jane Doe",
-    email: "janedoe@mail.com",
-    roles: ["editor"],
-    avatar: "https://i.pravatar.cc/150?img=1",
-  },
-];
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+
+const AUTH_COOKIE = "auth";
+const TOKEN_COOKIE = "token";
+
+type AdminUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: "ADMIN";
+};
 
 export const authProviderClient: AuthProvider = {
-  login: async ({ email, username, password, remember }) => {
-    // Suppose we actually send a request to the back end here.
-    const user = mockUsers[0];
+  login: async ({ email, password }) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/admin/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (user) {
-      Cookies.set("auth", JSON.stringify(user), {
-        expires: 30, // 30 days
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        return {
+          success: false,
+          error: {
+            name: "LoginError",
+            message:
+              errorData.message ??
+              "Invalid email or password, or you do not have admin access.",
+          },
+        };
+      }
+
+      const data = (await response.json()) as {
+        accessToken: string;
+        user: AdminUser;
+      };
+
+      Cookies.set(TOKEN_COOKIE, data.accessToken, {
+        expires: 30,
         path: "/",
       });
+      Cookies.set(AUTH_COOKIE, JSON.stringify(data.user), {
+        expires: 30,
+        path: "/",
+      });
+
       return {
         success: true,
         redirectTo: "/",
       };
+    } catch (error) {
+      return {
+        success: false,
+        error: {
+          name: "LoginError",
+          message:
+            error instanceof Error
+              ? error.message
+              : "An unexpected error occurred. Please try again.",
+        },
+      };
     }
-
-    return {
-      success: false,
-      error: {
-        name: "LoginError",
-        message: "Invalid username or password",
-      },
-    };
   },
   logout: async () => {
-    Cookies.remove("auth", { path: "/" });
+    Cookies.remove(TOKEN_COOKIE, { path: "/" });
+    Cookies.remove(AUTH_COOKIE, { path: "/" });
     return {
       success: true,
       redirectTo: "/login",
     };
   },
   check: async () => {
-    const auth = Cookies.get("auth");
-    if (auth) {
+    const token = Cookies.get(TOKEN_COOKIE);
+    if (token) {
       return {
         authenticated: true,
       };
@@ -64,18 +93,17 @@ export const authProviderClient: AuthProvider = {
     };
   },
   getPermissions: async () => {
-    const auth = Cookies.get("auth");
+    const auth = Cookies.get(AUTH_COOKIE);
     if (auth) {
-      const parsedUser = JSON.parse(auth);
-      return parsedUser.roles;
+      const parsedUser = JSON.parse(auth) as AdminUser;
+      return [parsedUser.role];
     }
     return null;
   },
   getIdentity: async () => {
-    const auth = Cookies.get("auth");
+    const auth = Cookies.get(AUTH_COOKIE);
     if (auth) {
-      const parsedUser = JSON.parse(auth);
-      return parsedUser;
+      return JSON.parse(auth) as AdminUser;
     }
     return null;
   },
