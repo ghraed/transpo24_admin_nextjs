@@ -45,22 +45,18 @@ export const dataProvider: DataProviders = {
     getList: async (params) => {
       const current = (params.pagination as { current?: number; pageSize?: number } | undefined)?.current ?? 1;
       const pageSize = (params.pagination as { current?: number; pageSize?: number } | undefined)?.pageSize ?? 10;
-      const start = Math.max(current - 1, 0) * pageSize;
 
-      const { data, headers } = await axiosInstance.get(
+      const { data } = await axiosInstance.get(
         `${API_URL}/admin/users`,
-        {
-          params: {
-            _start: start,
-            _end: start + pageSize,
-          },
-        }
+        {}
       );
 
-      const total = parseInt(headers["x-total-count"] ?? data.length, 10);
+      const start = Math.max(current - 1, 0) * pageSize;
+      const paginatedData = data.slice(start, start + pageSize);
+      const total = data.length;
 
       return {
-        data,
+        data: paginatedData,
         total,
       };
     },
@@ -89,6 +85,17 @@ export const dataProvider: DataProviders = {
         `${API_URL}/admin/users/${params.id}`
       );
       return { data };
+    },
+    custom: async (params) => {
+      if (
+        params.method === "post" &&
+        params.url?.match(/^\/admin\/users\/[^/]+\/reactivate$/)
+      ) {
+        const { data } = await axiosInstance.post(`${API_URL}${params.url}`);
+        return { data };
+      }
+
+      return simpleRestProvider.custom?.(params);
     },
     getApiUrl: () => API_URL,
   },

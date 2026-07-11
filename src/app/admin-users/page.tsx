@@ -1,15 +1,17 @@
 "use client";
 
-import { useGetIdentity } from "@refinedev/core";
+import { useCustomMutation, useGetIdentity, useInvalidate } from "@refinedev/core";
 import { useTable } from "@refinedev/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
 import React from "react";
+import { Loader2, RotateCcw } from "lucide-react";
 
 import { DataTable } from "@/components/refine-ui/data-table/data-table";
 import { ListView, ListViewHeader } from "@/components/refine-ui/views/list-view";
 import { Badge } from "@/components/ui/badge";
 import { EditButton } from "@/components/refine-ui/buttons/edit";
 import { DeleteButton } from "@/components/refine-ui/buttons/delete";
+import { Button } from "@/components/ui/button";
 
 type AdminUser = {
   id: string;
@@ -18,6 +20,7 @@ type AdminUser = {
   role: string;
   createdAt: string;
   updatedAt: string;
+  deletedAt: string | null;
 };
 
 type CurrentUser = {
@@ -26,6 +29,10 @@ type CurrentUser = {
 
 export default function AdminUserList() {
   const { data: currentUser } = useGetIdentity<CurrentUser>();
+  const invalidate = useInvalidate();
+  const { mutate: reactivateUser, mutation: reactivateMutation } =
+    useCustomMutation();
+  const isReactivating = reactivateMutation.isPending;
 
   const columns = React.useMemo(() => {
     const columnHelper = createColumnHelper<AdminUser>();
@@ -50,9 +57,16 @@ export default function AdminUserList() {
         id: "role",
         header: "Role",
         enableSorting: false,
-        cell: ({ getValue }) => {
+        cell: ({ row, getValue }) => {
           const role = getValue();
-          return <Badge variant="default">{role}</Badge>;
+          const isDeleted = Boolean(row.original.deletedAt);
+
+          return (
+            <div className="flex gap-2">
+              <Badge variant="default">{role}</Badge>
+              {isDeleted && <Badge variant="secondary">Inactive</Badge>}
+            </div>
+          );
         },
       }),
       columnHelper.accessor("createdAt", {
@@ -69,20 +83,59 @@ export default function AdminUserList() {
         header: "Actions",
         cell: ({ row }) => {
           const isCurrentUser = row.original.id === currentUser?.id;
+          const isDeleted = Boolean(row.original.deletedAt);
 
           return (
             <div className="flex gap-2">
-              <EditButton recordItemId={row.original.id} size="sm" />
-              <DeleteButton
+              <EditButton
                 recordItemId={row.original.id}
                 size="sm"
-                disabled={isCurrentUser}
-                title={
-                  isCurrentUser
-                    ? "You cannot delete your own admin account."
-                    : undefined
-                }
+                disabled={isDeleted}
+                title={isDeleted ? "Reactivate this admin user to edit it." : undefined}
               />
+              {isDeleted ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={isReactivating}
+                  onClick={() => {
+                    reactivateUser(
+                      {
+                        url: `/admin/users/${row.original.id}/reactivate`,
+                        method: "post",
+                        values: {},
+                        dataProviderName: "adminUsers",
+                      },
+                      {
+                        onSuccess: () => {
+                          invalidate({
+                            resource: "admin_users",
+                            invalidates: ["list", "detail"],
+                          });
+                        },
+                      }
+                    );
+                  }}
+                >
+                  {isReactivating ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <RotateCcw className="h-4 w-4" />
+                  )}
+                  Reactivate
+                </Button>
+              ) : (
+                <DeleteButton
+                  recordItemId={row.original.id}
+                  size="sm"
+                  disabled={isCurrentUser}
+                  title={
+                    isCurrentUser
+                      ? "You cannot delete your own admin account."
+                      : undefined
+                  }
+                />
+              )}
             </div>
           );
         },
@@ -90,7 +143,7 @@ export default function AdminUserList() {
         size: 200,
       }),
     ];
-  }, [currentUser?.id]);
+  }, [currentUser?.id, invalidate, isReactivating, reactivateUser]);
 
   const table = useTable({
     columns,
