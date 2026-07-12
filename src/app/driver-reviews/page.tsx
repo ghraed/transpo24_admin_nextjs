@@ -3,8 +3,19 @@
 import React from "react";
 import { useCustom, useCustomMutation } from "@refinedev/core";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { ListView, ListViewHeader } from "@/components/refine-ui/views/list-view";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -99,22 +110,52 @@ export default function DriverReviewsPage() {
   });
   const { mutate, mutation } = useCustomMutation();
   const [activeReview, setActiveReview] = React.useState<DriverReview | null>(null);
+  const [approveReview, setApproveReview] = React.useState<DriverReview | null>(null);
   const [declineReason, setDeclineReason] = React.useState("");
+  const [reviews, setReviews] = React.useState<DriverReview[]>([]);
 
-  const reviews = result.data?.items ?? [];
+  React.useEffect(() => {
+    if (result.data?.items) {
+      setReviews(result.data.items);
+    }
+  }, [result.data?.items]);
+
   const pendingReviews = reviews.filter((review) => review.status === "PENDING_REVIEW");
   const reviewedHistory = reviews.filter((review) => review.status !== "PENDING_REVIEW");
 
-  const handleApprove = (reviewId: string) => {
+  const handleApprove = () => {
+    if (!approveReview) return;
+
     mutate(
       {
-        url: `/admin/driver-reviews/${reviewId}/approve`,
+        url: `/admin/driver-reviews/${approveReview.id}/approve`,
         method: "post",
         values: {},
         dataProviderName: "adminDriverReviews",
       },
       {
-        onSuccess: () => {
+        onSuccess: (response) => {
+          const updatedReview = response?.data as DriverReview | undefined;
+          setReviews((current) =>
+            current.map((review) =>
+              review.id === approveReview.id
+                ? updatedReview ?? {
+                    ...review,
+                    status: "APPROVED",
+                    vehicle: review.vehicle
+                      ? {
+                          ...review.vehicle,
+                          status: "APPROVED",
+                          isActive: true,
+                          rejectionReason: null,
+                        }
+                      : null,
+                  }
+                : review,
+            ),
+          );
+          toast.success("Driver approved successfully.");
+          setApproveReview(null);
           void query.refetch();
         },
       }
@@ -134,9 +175,35 @@ export default function DriverReviewsPage() {
         dataProviderName: "adminDriverReviews",
       },
       {
-        onSuccess: () => {
+        onSuccess: (response) => {
+          const updatedReview = response?.data as DriverReview | undefined;
+          const normalizedReason = declineReason.trim() || "Declined by admin review.";
+          setReviews((current) =>
+            current.map((review) =>
+              review.id === activeReview.id
+                ? updatedReview ?? {
+                    ...review,
+                    status: "REJECTED",
+                    vehicle: review.vehicle
+                      ? {
+                          ...review.vehicle,
+                          status: "REJECTED",
+                          isActive: false,
+                          rejectionReason: normalizedReason,
+                        }
+                      : null,
+                    onboardingDocuments: review.onboardingDocuments.map((document) => ({
+                      ...document,
+                      status: "REJECTED",
+                      rejectionReason: normalizedReason,
+                    })),
+                  }
+                : review,
+            ),
+          );
           setActiveReview(null);
           setDeclineReason("");
+          toast.success("Driver declined successfully.");
           void query.refetch();
         },
       }
@@ -179,7 +246,7 @@ export default function DriverReviewsPage() {
                 key={review.id}
                 review={review}
                 isMutating={isMutating}
-                onApprove={() => handleApprove(review.id)}
+                onApprove={() => setApproveReview(review)}
                 onDecline={() => {
                   setActiveReview(review);
                   setDeclineReason("");
@@ -199,7 +266,33 @@ export default function DriverReviewsPage() {
             ))}
           </div>
         </section>
-      ) : null}
+        ) : null}
+
+      <AlertDialog
+        open={Boolean(approveReview)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setApproveReview(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Approve Driver Review</AlertDialogTitle>
+            <AlertDialogDescription>
+              {approveReview
+                ? `Approve ${approveReview.name} and mark this driver review request as approved?`
+                : "Approve this driver review request?"}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isMutating}>Cancel</AlertDialogCancel>
+            <AlertDialogAction disabled={isMutating} onClick={handleApprove}>
+              {isMutating ? "Approving..." : "Approve"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog
         open={Boolean(activeReview)}
