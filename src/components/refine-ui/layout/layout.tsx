@@ -12,26 +12,16 @@ export function Layout({ children }: PropsWithChildren) {
     <ThemeProvider>
       <SidebarProvider>
         <Sidebar />
-        <SidebarInset>
+        <SidebarInset className="bg-transparent">
           <Header />
           <main
             className={cn(
-              "@container/main",
-              "container",
-              "mx-auto",
-              "relative",
-              "w-full",
-              "flex",
-              "flex-col",
-              "flex-1",
-              "px-2",
-              "pt-4",
-              "md:p-4",
-              "lg:px-6",
-              "lg:pt-6"
+              "@container/main relative flex flex-1 flex-col px-3 pb-6 md:px-5 md:pb-8 lg:px-8 lg:pb-10"
             )}
           >
-            {children}
+            <div className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col">
+              {children}
+            </div>
           </main>
         </SidebarInset>
       </SidebarProvider>

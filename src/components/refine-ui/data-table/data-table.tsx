@@ -83,9 +83,14 @@ export function DataTable<TData extends BaseRecord>({
 
   return (
     <div className={cn("flex", "flex-col", "flex-1", "gap-4")}>
-      <div ref={tableContainerRef} className={cn("rounded-md", "border")}>
+      <div
+        ref={tableContainerRef}
+        className={cn(
+          "overflow-hidden rounded-[1.75rem] border border-white/55 bg-card/86 shadow-[0_20px_50px_-35px_rgba(15,23,42,0.35)] backdrop-blur"
+        )}
+      >
         <Table ref={tableRef} style={{ tableLayout: "fixed", width: "100%" }}>
-          <TableHeader>
+          <TableHeader className="bg-muted/45">
             {getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -94,6 +99,7 @@ export function DataTable<TData extends BaseRecord>({
                   return (
                     <TableHead
                       key={header.id}
+                      className="h-12 px-4 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground"
                       style={{
                         ...getCommonStyles({
                           column: header.column,
@@ -131,7 +137,7 @@ export function DataTable<TData extends BaseRecord>({
                             isOverflowing: isOverflowing,
                           }),
                         }}
-                        className={cn("truncate")}
+                        className={cn("truncate px-4")}
                       >
                         <div className="h-8" />
                       </TableCell>
@@ -165,11 +171,13 @@ export function DataTable<TData extends BaseRecord>({
                   <TableRow
                     key={row.original?.id ?? row.id}
                     data-state={row.getIsSelected() && "selected"}
+                    className="border-border/60 transition-colors hover:bg-muted/35"
                   >
                     {row.getVisibleCells().map((cell) => {
                       return (
                         <TableCell
                           key={cell.id}
+                          className="px-4 py-4 align-middle"
                           style={{
                             ...getCommonStyles({
                               column: cell.column,
@@ -198,16 +206,18 @@ export function DataTable<TData extends BaseRecord>({
           </TableBody>
         </Table>
       </div>
-      {!isLoading && getRowModel().rows?.length > 0 && (
-        <DataTablePagination
-          currentPage={currentPage}
-          pageCount={pageCount}
-          setCurrentPage={setCurrentPage}
-          pageSize={pageSize}
-          setPageSize={setPageSize}
-          total={tableQuery.data?.total}
-        />
-      )}
+      {!isLoading && getRowModel().rows?.length > 0 ? (
+        <div className="rounded-[1.25rem] border border-white/45 bg-background/70 px-4 py-3 backdrop-blur">
+          <DataTablePagination
+            currentPage={currentPage}
+            pageCount={pageCount}
+            setCurrentPage={setCurrentPage}
+            pageSize={pageSize}
+            setPageSize={setPageSize}
+            total={tableQuery.data?.total}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -235,7 +245,7 @@ function DataTableNoData({
             "items-center",
             "justify-center",
             "gap-2",
-            "bg-background"
+            "bg-card"
           )}
           style={{
             position: isOverflowing.horizontal ? "sticky" : "absolute",

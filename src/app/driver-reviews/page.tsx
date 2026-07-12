@@ -214,7 +214,7 @@ export default function DriverReviewsPage() {
 
   return (
     <ListView className="gap-6">
-      <ListViewHeader canCreate={false} title="Driver Reviews" />
+      <ListViewHeader canCreate={false} title="Driver Requests" />
 
       {query.isLoading ? (
         <div className="flex items-center gap-3 rounded-lg border p-6 text-sm text-muted-foreground">
