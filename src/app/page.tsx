@@ -19,6 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { WebPushSettingsCard } from "@/components/web-push/web-push-settings-card";
 import { cn } from "@/lib/utils";
 
 const modules = [
@@ -157,6 +158,31 @@ export default function IndexPage() {
                     </div>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          </section>
+
+          <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <WebPushSettingsCard />
+            <Card className="rounded-[1.75rem] border-white/55 bg-card/84">
+              <CardHeader className="gap-2">
+                <CardTitle className="text-2xl tracking-[-0.03em]">
+                  Notification delivery
+                </CardTitle>
+                <CardDescription className="leading-6">
+                  Keep using live in-app updates while the dashboard is open, and add browser notifications for important admin events when the tab is hidden or closed.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm leading-6 text-muted-foreground">
+                <p>
+                  Browser permission is requested only after you click the enable button.
+                </p>
+                <p>
+                  The browser subscription is synchronized with the NestJS backend and removed during logout to avoid cross-account leakage on shared machines.
+                </p>
+                <p>
+                  Production Web Push requires HTTPS. Localhost works for development, but plain LAN HTTP addresses may not expose full service-worker or notification support.
+                </p>
               </CardContent>
             </Card>
           </section>

@@ -2,6 +2,7 @@
 
 import type { AuthProvider } from "@refinedev/core";
 import Cookies from "js-cookie";
+import { cleanupWebPushOnLogout } from "@/lib/web-push";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
@@ -71,6 +72,7 @@ export const authProviderClient: AuthProvider = {
     }
   },
   logout: async () => {
+    await cleanupWebPushOnLogout().catch(() => undefined);
     Cookies.remove(TOKEN_COOKIE, { path: "/" });
     Cookies.remove(AUTH_COOKIE, { path: "/" });
     return {

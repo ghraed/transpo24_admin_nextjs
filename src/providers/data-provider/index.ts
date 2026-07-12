@@ -1,13 +1,14 @@
 "use client";
 
-import axios from "axios";
-import dataProviderSimpleRest from "@refinedev/simple-rest";
 import type { DataProviders, HttpError } from "@refinedev/core";
+import dataProviderSimpleRest from "@refinedev/simple-rest";
+import axios from "axios";
 import Cookies from "js-cookie";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
-const axiosInstance = axios.create();
+export const axiosInstance = axios.create();
 
 function normalizeHttpError(error: unknown): HttpError {
   if (axios.isAxiosError(error)) {

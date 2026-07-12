@@ -2,9 +2,13 @@
 
 import React from "react";
 import { useCustom, useCustomMutation } from "@refinedev/core";
-import { Loader2 } from "lucide-react";
+import { BellRing, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+import {
+  WEB_PUSH_EVENT_NAME,
+  useWebPushNotifications,
+} from "@/components/web-push/web-push-provider";
 import { ListView, ListViewHeader } from "@/components/refine-ui/views/list-view";
 import {
   AlertDialog,
@@ -27,6 +31,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { showTestNotification } from "@/lib/web-push";
 
 type ReviewStatus =
   | "PENDING_REVIEW"
@@ -103,6 +108,7 @@ function formatDate(value: string | null): string {
 }
 
 export default function DriverReviewsPage() {
+  const webPush = useWebPushNotifications();
   const { query, result } = useCustom<{ items: DriverReview[] }>({
     url: "/admin/driver-reviews",
     method: "get",
@@ -113,12 +119,34 @@ export default function DriverReviewsPage() {
   const [approveReview, setApproveReview] = React.useState<DriverReview | null>(null);
   const [declineReason, setDeclineReason] = React.useState("");
   const [reviews, setReviews] = React.useState<DriverReview[]>([]);
+  const [isTestingNotification, setIsTestingNotification] = React.useState(false);
 
   React.useEffect(() => {
     if (result.data?.items) {
       setReviews(result.data.items);
     }
   }, [result.data?.items]);
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const onWebPushReceived = (event: Event) => {
+      const detail = (event as CustomEvent<{ type?: string | null }>).detail;
+      if (detail?.type !== "DRIVER_REVIEW_SUBMITTED") {
+        return;
+      }
+
+      void query.refetch();
+    };
+
+    window.addEventListener(WEB_PUSH_EVENT_NAME, onWebPushReceived);
+
+    return () => {
+      window.removeEventListener(WEB_PUSH_EVENT_NAME, onWebPushReceived);
+    };
+  }, [query]);
 
   const pendingReviews = reviews.filter((review) => review.status === "PENDING_REVIEW");
   const reviewedHistory = reviews.filter((review) => review.status !== "PENDING_REVIEW");
@@ -210,11 +238,60 @@ export default function DriverReviewsPage() {
     );
   };
 
+  const handleTestNotification = async () => {
+    if (webPush.status !== "subscribed") {
+      toast.error("Enable browser notifications from the dashboard before testing.");
+      return;
+    }
+
+    setIsTestingNotification(true);
+
+    try {
+      await showTestNotification();
+      toast.success("Test browser notification sent to this device.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to send the test browser notification.",
+      );
+    } finally {
+      setIsTestingNotification(false);
+    }
+  };
+
   const isMutating = mutation.isPending;
 
   return (
     <ListView className="gap-6">
       <ListViewHeader canCreate={false} title="Driver Requests" />
+
+      <div className="flex flex-col gap-3 rounded-[1.5rem] border border-white/55 bg-card/82 px-5 py-4 shadow-[0_18px_45px_-35px_rgba(15,23,42,0.35)] backdrop-blur md:flex-row md:items-center md:justify-between">
+        <div className="space-y-1">
+          <h3 className="text-sm font-semibold tracking-[-0.02em]">
+            Browser notification test
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Send a local test notification to this browser after Web Push is enabled.
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          className="rounded-full"
+          disabled={isTestingNotification || webPush.status !== "subscribed"}
+          onClick={() => {
+            void handleTestNotification();
+          }}
+        >
+          {isTestingNotification ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <BellRing className="h-4 w-4" />
+          )}
+          {isTestingNotification ? "Sending test..." : "Test notification"}
+        </Button>
+      </div>
 
       {query.isLoading ? (
         <div className="flex items-center gap-3 rounded-lg border p-6 text-sm text-muted-foreground">

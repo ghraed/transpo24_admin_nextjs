@@ -13,6 +13,7 @@ import { Header } from "@/components/refine-ui/layout/header";
 import { useNotificationProvider } from "@/components/refine-ui/notification/use-notification-provider";
 import { Toaster } from "@/components/refine-ui/notification/toaster";
 import { ThemeProvider } from "@/components/refine-ui/theme/theme-provider";
+import { WebPushProvider } from "@/components/web-push/web-push-provider";
 import "@/app/globals.css";
 import { authProviderClient } from "@providers/auth-provider/auth-provider.client";
 import { ClipboardCheck, Shield } from "lucide-react";
@@ -66,9 +67,11 @@ export const RefineContext = ({ children }: RefineContextProps) => {
             },
           }}
         >
-          {children}
-          <Toaster />
-          <RefineKbar />
+          <WebPushProvider>
+            {children}
+            <Toaster />
+            <RefineKbar />
+          </WebPushProvider>
         </Refine>
       </ThemeProvider>
     </RefineKbarProvider>

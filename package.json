@@ -10,6 +10,8 @@
     "build": "refine build",
     "start": "refine start",
     "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test:web-push": "tsc --module nodenext --moduleResolution nodenext --target es2022 --lib dom,es2022 --strict --esModuleInterop --skipLibCheck --noEmit false --outDir /tmp/transpo24-admin-web-push-tests src/lib/web-push/types.ts src/lib/web-push/shared.ts src/lib/web-push/shared.test.ts src/lib/web-push/client.test.ts && node --test /tmp/transpo24-admin-web-push-tests/*.test.js",
     "refine": "refine"
   },
   "dependencies": {
