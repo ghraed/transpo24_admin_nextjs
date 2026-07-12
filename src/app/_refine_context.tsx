@@ -15,7 +15,7 @@ import { Toaster } from "@/components/refine-ui/notification/toaster";
 import { ThemeProvider } from "@/components/refine-ui/theme/theme-provider";
 import "@/app/globals.css";
 import { authProviderClient } from "@providers/auth-provider/auth-provider.client";
-import { Shield } from "lucide-react";
+import { ClipboardCheck, Shield } from "lucide-react";
 
 type RefineContextProps = {
   children: React.ReactNode;
@@ -64,6 +64,16 @@ export const RefineContext = ({ children }: RefineContextProps) => {
                 label: "Admin Users",
                 icon: <Shield className="h-4 w-4" />,
                 dataProviderName: "adminUsers",
+              },
+            },
+            {
+              name: "driver_reviews",
+              identifier: "driver_reviews",
+              list: "/driver-reviews",
+              meta: {
+                label: "Driver Reviews",
+                icon: <ClipboardCheck className="h-4 w-4" />,
+                dataProviderName: "adminDriverReviews",
               },
             },
           ]}
