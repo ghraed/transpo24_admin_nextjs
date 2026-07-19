@@ -24,9 +24,9 @@ import {
 } from "lucide-react";
 
 const futureModules = [
-  "Billing and settlements",
   "Live fleet incidents",
   "Support escalations",
+  "Billing exports",
 ];
 
 export function Sidebar() {
@@ -193,7 +193,9 @@ function SidebarNavItem({
             >
               {item.name === "admin_users"
                 ? "Manage staff access and status"
-                : "Handle onboarding review decisions"}
+                : item.name === "driver_earnings"
+                  ? "Track pending and failed payouts"
+                  : "Handle onboarding review decisions"}
             </div>
           </div>
         </Link>

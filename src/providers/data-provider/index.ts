@@ -161,4 +161,36 @@ export const dataProvider: DataProviders = {
     },
     getApiUrl: () => API_URL,
   },
+  adminDriverEarnings: {
+    ...simpleRestProvider,
+    custom: async (params) => {
+      try {
+        if (params.url?.startsWith("/admin/driver-earnings")) {
+          const method = params.method?.toLowerCase() ?? "get";
+
+          if (method === "get") {
+            const { data } = await axiosInstance.get(`${API_URL}${params.url}`);
+            return { data };
+          }
+
+          if (method === "post") {
+            const body =
+              (params as { payload?: unknown; values?: unknown }).payload ??
+              (params as { payload?: unknown; values?: unknown }).values ??
+              {};
+            const { data } = await axiosInstance.post(
+              `${API_URL}${params.url}`,
+              body
+            );
+            return { data };
+          }
+        }
+
+        return simpleRestProvider.custom?.(params);
+      } catch (error) {
+        throw normalizeHttpError(error);
+      }
+    },
+    getApiUrl: () => API_URL,
+  },
 };

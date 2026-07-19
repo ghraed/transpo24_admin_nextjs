@@ -6,6 +6,7 @@ import { Authenticated } from "@refinedev/core";
 import {
   ArrowRight,
   ClipboardCheck,
+  Coins,
   Shield,
   Sparkles,
   Users,
@@ -37,12 +38,19 @@ const modules = [
     icon: ClipboardCheck,
     eyebrow: "Operational review",
   },
+  {
+    title: "Driver Earnings",
+    href: "/driver-earnings",
+    description: "Track pending holds, payout retries, and transfer failures for driver earnings.",
+    icon: Coins,
+    eyebrow: "Billing & payouts",
+  },
 ];
 
 const roadmap = [
   "Add future modules without redesigning navigation",
   "Keep each feature in a focused workspace route",
-  "Scale the dashboard with metrics, alerts, and queues",
+  "Scale the dashboard with metrics, alerts, queues, and payouts",
 ];
 
 export default function IndexPage() {
