@@ -16,6 +16,33 @@ type AdminUser = {
   role: "ADMIN";
 };
 
+function extractErrorMessage(data: unknown): string | null {
+  if (!data || typeof data !== "object") {
+    return null;
+  }
+
+  const candidate = data as { message?: unknown; error?: unknown };
+
+  if (typeof candidate.message === "string" && candidate.message.trim()) {
+    return candidate.message;
+  }
+
+  if (Array.isArray(candidate.message)) {
+    const joined = candidate.message
+      .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+      .join(", ");
+    if (joined) {
+      return joined;
+    }
+  }
+
+  if (typeof candidate.error === "string" && candidate.error.trim()) {
+    return candidate.error;
+  }
+
+  return null;
+}
+
 export const authProviderClient: AuthProvider = {
   login: async ({ email, password }) => {
     try {
@@ -28,14 +55,15 @@ export const authProviderClient: AuthProvider = {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = await response.json().catch(() => null);
         return {
           success: false,
           error: {
             name: "LoginError",
             message:
-              errorData.message ??
-              "Invalid email or password, or you do not have admin access.",
+              extractErrorMessage(errorData) ??
+              response.statusText ??
+              "Request failed.",
           },
         };
       }
@@ -66,7 +94,7 @@ export const authProviderClient: AuthProvider = {
           message:
             error instanceof Error
               ? error.message
-              : "An unexpected error occurred. Please try again.",
+              : "Request failed.",
         },
       };
     }

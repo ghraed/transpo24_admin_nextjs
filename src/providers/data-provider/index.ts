@@ -10,11 +10,39 @@ export const API_URL =
 
 export const axiosInstance = axios.create();
 
+function extractErrorMessage(data: unknown): string | null {
+  if (!data || typeof data !== "object") {
+    return null;
+  }
+
+  const candidate = data as { message?: unknown; error?: unknown };
+
+  if (typeof candidate.message === "string" && candidate.message.trim()) {
+    return candidate.message;
+  }
+
+  if (Array.isArray(candidate.message)) {
+    const joined = candidate.message
+      .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+      .join(", ");
+    if (joined) {
+      return joined;
+    }
+  }
+
+  if (typeof candidate.error === "string" && candidate.error.trim()) {
+    return candidate.error;
+  }
+
+  return null;
+}
+
 function normalizeHttpError(error: unknown): HttpError {
   if (axios.isAxiosError(error)) {
     return {
       message:
-        (typeof error.response?.data?.message === "string" && error.response.data.message) ||
+        extractErrorMessage(error.response?.data) ||
+        error.response?.statusText ||
         error.message ||
         "Request failed.",
       statusCode: error.response?.status ?? error.status ?? 500,
@@ -182,6 +210,26 @@ export const dataProvider: DataProviders = {
               `${API_URL}${params.url}`,
               body
             );
+            return { data };
+          }
+        }
+
+        return simpleRestProvider.custom?.(params);
+      } catch (error) {
+        throw normalizeHttpError(error);
+      }
+    },
+    getApiUrl: () => API_URL,
+  },
+  adminPaymentDisputes: {
+    ...simpleRestProvider,
+    custom: async (params) => {
+      try {
+        if (params.url?.startsWith("/admin/payments/disputes")) {
+          const method = params.method?.toLowerCase() ?? "get";
+
+          if (method === "get") {
+            const { data } = await axiosInstance.get(`${API_URL}${params.url}`);
             return { data };
           }
         }
