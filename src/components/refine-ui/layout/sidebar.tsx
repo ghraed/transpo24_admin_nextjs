@@ -21,6 +21,7 @@ import {
   ClipboardCheck,
   ListIcon,
   Shield,
+  WalletCards,
 } from "lucide-react";
 
 const futureModules = [
@@ -195,7 +196,11 @@ function SidebarNavItem({
                 ? "Manage staff access and status"
                 : item.name === "driver_earnings"
                   ? "Track pending and failed payouts"
-                  : "Handle onboarding review decisions"}
+                  : item.name === "payment_disputes"
+                    ? "Review chargebacks and manual review items"
+                    : item.name === "payments_reconciliation"
+                      ? "Inspect wallet, capture, refund, and transfer drift"
+                    : "Handle onboarding review decisions"}
             </div>
           </div>
         </Link>

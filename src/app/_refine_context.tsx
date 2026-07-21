@@ -16,7 +16,13 @@ import { ThemeProvider } from "@/components/refine-ui/theme/theme-provider";
 import { WebPushProvider } from "@/components/web-push/web-push-provider";
 import "@/app/globals.css";
 import { authProviderClient } from "@providers/auth-provider/auth-provider.client";
-import { AlertTriangle, ClipboardCheck, Coins, Shield } from "lucide-react";
+import {
+  AlertTriangle,
+  ClipboardCheck,
+  Coins,
+  Shield,
+  WalletCards,
+} from "lucide-react";
 
 type RefineContextProps = {
   children: React.ReactNode;
@@ -75,6 +81,16 @@ export const RefineContext = ({ children }: RefineContextProps) => {
                 label: "Payment Disputes",
                 icon: <AlertTriangle className="h-4 w-4" />,
                 dataProviderName: "adminPaymentDisputes",
+              },
+            },
+            {
+              name: "payments_reconciliation",
+              identifier: "payments_reconciliation",
+              list: "/payments-reconciliation",
+              meta: {
+                label: "Payments Reconciliation",
+                icon: <WalletCards className="h-4 w-4" />,
+                dataProviderName: "adminPaymentsReconciliation",
               },
             },
           ]}

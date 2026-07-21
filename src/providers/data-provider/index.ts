@@ -15,26 +15,53 @@ function extractErrorMessage(data: unknown): string | null {
     return null;
   }
 
-  const candidate = data as { message?: unknown; error?: unknown };
+  const candidate = data as {
+    message?: unknown;
+    error?: unknown;
+    details?: unknown;
+  };
 
-  if (typeof candidate.message === "string" && candidate.message.trim()) {
-    return candidate.message;
-  }
-
-  if (Array.isArray(candidate.message)) {
-    const joined = candidate.message
-      .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
-      .join(", ");
-    if (joined) {
-      return joined;
+  const firstString = (value: unknown): string | null => {
+    if (typeof value === "string" && value.trim()) {
+      return value;
     }
-  }
 
-  if (typeof candidate.error === "string" && candidate.error.trim()) {
-    return candidate.error;
-  }
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const nested = firstString(item);
+        if (nested) {
+          return nested;
+        }
+      }
+      return null;
+    }
 
-  return null;
+    if (value && typeof value === "object") {
+      const objectValue = value as Record<string, unknown>;
+
+      for (const key of ["message", "error", "detail", "details", "reason"]) {
+        const nested = firstString(objectValue[key]);
+        if (nested) {
+          return nested;
+        }
+      }
+
+      for (const nestedValue of Object.values(objectValue)) {
+        const nested = firstString(nestedValue);
+        if (nested) {
+          return nested;
+        }
+      }
+    }
+
+    return null;
+  };
+
+  return (
+    firstString(candidate.message) ??
+    firstString(candidate.error) ??
+    firstString(candidate.details)
+  );
 }
 
 function normalizeHttpError(error: unknown): HttpError {
@@ -230,6 +257,38 @@ export const dataProvider: DataProviders = {
 
           if (method === "get") {
             const { data } = await axiosInstance.get(`${API_URL}${params.url}`);
+            return { data };
+          }
+        }
+
+        return simpleRestProvider.custom?.(params);
+      } catch (error) {
+        throw normalizeHttpError(error);
+      }
+    },
+    getApiUrl: () => API_URL,
+  },
+  adminPaymentsReconciliation: {
+    ...simpleRestProvider,
+    custom: async (params) => {
+      try {
+        if (params.url?.startsWith("/admin/payments/reconciliation")) {
+          const method = params.method?.toLowerCase() ?? "get";
+
+          if (method === "get") {
+            const { data } = await axiosInstance.get(`${API_URL}${params.url}`);
+            return { data };
+          }
+
+          if (method === "post") {
+            const body =
+              (params as { payload?: unknown; values?: unknown }).payload ??
+              (params as { payload?: unknown; values?: unknown }).values ??
+              {};
+            const { data } = await axiosInstance.post(
+              `${API_URL}${params.url}`,
+              body,
+            );
             return { data };
           }
         }
