@@ -1,4 +1,9 @@
-export type DriverEarningsView = "all" | "pending" | "active" | "failed";
+export type DriverEarningsView =
+  | "all"
+  | "pending"
+  | "active"
+  | "failed"
+  | "paid";
 
 export type DriverEarningStatus = "PENDING" | "AVAILABLE" | "PAID_OUT";
 
@@ -23,6 +28,26 @@ export type DriverEarningStripeStatus = {
   payoutsEnabled: boolean;
 };
 
+export type DriverEarningAdditionalChargePaymentMethod = {
+  id: string;
+  brand: string | null;
+  last4: string | null;
+  expMonth: number | null;
+  expYear: number | null;
+};
+
+export type DriverEarningAdditionalCharge = {
+  id: string;
+  amount: number;
+  appFeeAmount: number;
+  totalChargeAmount: number;
+  currency: string;
+  status: string;
+  paymentOption: "SAVED_CARD" | "CASH_ON_DELIVERY" | null;
+  savedPaymentMethod: DriverEarningAdditionalChargePaymentMethod | null;
+  createdAt: string;
+};
+
 export type DriverEarningAdminItem = {
   tripId: string;
   earningId: string;
@@ -30,6 +55,8 @@ export type DriverEarningAdminItem = {
   driver: DriverEarningAdminParty;
   customer: DriverEarningAdminParty;
   stripe: DriverEarningStripeStatus;
+  grossAmount: number;
+  platformFeeAmount: number;
   netAmount: number;
   currency: string;
   earningStatus: DriverEarningStatus;
@@ -44,6 +71,7 @@ export type DriverEarningAdminItem = {
   stripeTransferStatus: string | null;
   canRetry: boolean;
   retryBlockedReason: string | null;
+  additionalCharges: DriverEarningAdditionalCharge[];
 };
 
 export type DriverEarningAdminSummary = {

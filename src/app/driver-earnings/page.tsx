@@ -2,7 +2,13 @@
 
 import React from "react";
 import { useCustom, useCustomMutation } from "@refinedev/core";
-import { AlertTriangle, Coins, Loader2, RotateCcw } from "lucide-react";
+import {
+  AlertTriangle,
+  Coins,
+  Loader2,
+  RefreshCcw,
+  RotateCcw,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { ListView, ListViewHeader } from "@/components/refine-ui/views/list-view";
@@ -36,6 +42,7 @@ const VIEW_OPTIONS: Array<{ value: DriverEarningsView; label: string }> = [
   { value: "pending", label: "Pending hold" },
   { value: "active", label: "Ready / queued" },
   { value: "failed", label: "Failed" },
+  { value: "paid", label: "Paid out" },
 ];
 
 function formatDate(value: string | null): string {
@@ -55,6 +62,24 @@ function formatAmount(value: number, currency: string): string {
   }).format(value);
 }
 
+function toTimestamp(value: string | null | undefined): number {
+  if (!value) {
+    return 0;
+  }
+
+  const timestamp = new Date(value).getTime();
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+}
+
+function newestRecordTimestamp(item: DriverEarningAdminItem): number {
+  return Math.max(
+    toTimestamp(item.lastPayoutAttemptAt),
+    toTimestamp(item.nextPayoutRetryAt),
+    toTimestamp(item.paidOutAt),
+    toTimestamp(item.availableAt),
+  );
+}
+
 function earningStatusVariant(status: DriverEarningAdminItem["earningStatus"]) {
   if (status === "PAID_OUT") return "default";
   if (status === "AVAILABLE") return "secondary";
@@ -68,6 +93,32 @@ function payoutStateVariant(state: DriverEarningAdminItem["driverPayoutState"]) 
   return "outline";
 }
 
+function formatSavedCardSummary(
+  paymentMethod: DriverEarningAdminItem["additionalCharges"][number]["savedPaymentMethod"],
+): string {
+  if (!paymentMethod) {
+    return "Saved card";
+  }
+
+  const brand = paymentMethod.brand?.toUpperCase() ?? "CARD";
+  const last4 = paymentMethod.last4 ?? "----";
+  return `${brand} •••• ${last4}`;
+}
+
+function formatAdditionalChargePaymentOption(
+  charge: DriverEarningAdminItem["additionalCharges"][number],
+): string {
+  if (charge.paymentOption === "CASH_ON_DELIVERY") {
+    return "Cash on delivery";
+  }
+
+  if (charge.paymentOption === "SAVED_CARD") {
+    return formatSavedCardSummary(charge.savedPaymentMethod);
+  }
+
+  return "Awaiting customer choice";
+}
+
 export default function DriverEarningsPage() {
   const [view, setView] = React.useState<DriverEarningsView>("all");
   const [page, setPage] = React.useState(1);
@@ -77,11 +128,17 @@ export default function DriverEarningsPage() {
     url: `/admin/driver-earnings?page=${page}&limit=${PAGE_SIZE}&view=${view}`,
     method: "get",
     dataProviderName: "adminDriverEarnings",
+    queryOptions: {
+      refetchInterval: 30_000,
+      refetchOnWindowFocus: true,
+    },
   });
   const { mutate } = useCustomMutation();
 
   const response = result.data;
-  const items = response?.items ?? [];
+  const items = [...(response?.items ?? [])].sort(
+    (left, right) => newestRecordTimestamp(right) - newestRecordTimestamp(left),
+  );
   const summary = response?.summary;
   const total = response?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -157,9 +214,26 @@ export default function DriverEarningsPage() {
                 Review pending hold rows, active payout work, and failed Stripe transfers in one queue.
               </CardDescription>
             </div>
-            <Badge variant="outline" className="rounded-full px-3 py-1">
-              {total} row{total === 1 ? "" : "s"}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="rounded-full"
+                disabled={query.isFetching}
+                onClick={() => {
+                  void query.refetch();
+                }}
+              >
+                <RefreshCcw
+                  className={`h-4 w-4 ${query.isFetching ? "animate-spin" : ""}`}
+                />
+                Refresh
+              </Button>
+              <Badge variant="outline" className="rounded-full px-3 py-1">
+                {total} row{total === 1 ? "" : "s"}
+              </Badge>
+            </div>
           </div>
 
           <Tabs
@@ -213,6 +287,8 @@ export default function DriverEarningsPage() {
                     <TableRow>
                       <TableHead className="px-4">Driver</TableHead>
                       <TableHead className="px-4">Trip</TableHead>
+                      <TableHead className="px-4">Gross</TableHead>
+                      <TableHead className="px-4">Platform Fee</TableHead>
                       <TableHead className="px-4">Amount</TableHead>
                       <TableHead className="px-4">Earning</TableHead>
                       <TableHead className="px-4">Payout</TableHead>
@@ -268,6 +344,12 @@ export default function DriverEarningsPage() {
                           </div>
                         </TableCell>
                         <TableCell className="px-4 py-4 font-medium">
+                          {formatAmount(item.grossAmount, item.currency)}
+                        </TableCell>
+                        <TableCell className="px-4 py-4 font-medium">
+                          {formatAmount(item.platformFeeAmount, item.currency)}
+                        </TableCell>
+                        <TableCell className="px-4 py-4 font-medium">
                           {formatAmount(item.netAmount, item.currency)}
                         </TableCell>
                         <TableCell className="px-4 py-4">
@@ -307,6 +389,39 @@ export default function DriverEarningsPage() {
                             )}
                             <div>Transfer ID: {item.stripeTransferId ?? "-"}</div>
                             <div>Stripe status: {item.stripeTransferStatus ?? "-"}</div>
+                            {item.additionalCharges.length > 0 ? (
+                              <div className="space-y-2">
+                                {item.additionalCharges.map((charge) => (
+                                  <div
+                                    key={charge.id}
+                                    className="rounded-xl border border-border/70 bg-background/60 px-3 py-2"
+                                  >
+                                    <div className="font-medium text-foreground">
+                                      Additional charge{" "}
+                                      {formatAmount(
+                                        charge.totalChargeAmount,
+                                        charge.currency,
+                                      )}
+                                    </div>
+                                    <div>Status: {charge.status}</div>
+                                    <div>
+                                      Payment:{" "}
+                                      {formatAdditionalChargePaymentOption(charge)}
+                                    </div>
+                                    {charge.paymentOption === "SAVED_CARD" &&
+                                    charge.savedPaymentMethod ? (
+                                      <div>
+                                        Card:{" "}
+                                        {formatSavedCardSummary(
+                                          charge.savedPaymentMethod,
+                                        )}
+                                      </div>
+                                    ) : null}
+                                    <div>Added: {formatDate(charge.createdAt)}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : null}
                           </div>
                         </TableCell>
                         <TableCell className="px-4 py-4 text-right">
