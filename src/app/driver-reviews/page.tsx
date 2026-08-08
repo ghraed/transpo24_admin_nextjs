@@ -266,7 +266,7 @@ export default function DriverReviewsPage() {
     <ListView className="gap-6">
       <ListViewHeader canCreate={false} title="Driver Requests" />
 
-      <div className="flex flex-col gap-3 rounded-[1.5rem] border border-white/55 bg-card/82 px-5 py-4 shadow-[0_18px_45px_-35px_rgba(15,23,42,0.35)] backdrop-blur md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-3 rounded-3xl border border-border bg-card px-5 py-4 shadow-[0_10px_24px_-18px_rgba(17,24,39,0.28)] md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
           <h3 className="text-sm font-semibold tracking-[-0.02em]">
             Browser notification test

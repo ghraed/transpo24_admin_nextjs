@@ -46,7 +46,7 @@ export const SignInForm = () => {
         "flex-col",
         "items-center",
         "justify-center",
-        "px-6",
+        "px-6 bg-[radial-gradient(circle_at_top,_rgba(255,197,72,0.28),_transparent_28rem)]",
         "py-8",
         "min-h-svh"
       )}
@@ -54,29 +54,28 @@ export const SignInForm = () => {
       <div className={cn("flex", "items-center", "justify-center")}>
         {title.icon && (
           <div
-            className={cn("text-foreground", "[&>svg]:w-12", "[&>svg]:h-12")}
+            className={cn("flex h-16 w-16 items-center justify-center rounded-[1.25rem] bg-foreground text-primary shadow-xl", "[&>svg]:w-8", "[&>svg]:h-8")}
           >
             {title.icon}
           </div>
         )}
       </div>
 
-      <Card className={cn("sm:w-[456px]", "p-12", "mt-6")}>
+      <Card className={cn("w-full sm:w-[456px]", "p-7 sm:p-10", "mt-6 rounded-[1.75rem]")}>
         <CardHeader className={cn("px-0")}>
           <CardTitle
             className={cn(
-              "text-blue-600",
-              "dark:text-blue-400",
+              "text-foreground",
               "text-3xl",
               "font-semibold"
             )}
           >
-            Admin Sign in
+            Welcome back
           </CardTitle>
           <CardDescription
             className={cn("text-muted-foreground", "font-medium")}
           >
-            Admin access only
+            Sign in to the Transpo24 admin workspace
           </CardDescription>
         </CardHeader>
 
@@ -129,9 +128,7 @@ export const SignInForm = () => {
                   "flex",
                   "items-center",
                   "gap-2",
-                  "text-primary hover:underline",
-                  "text-blue-600",
-                  "dark:text-blue-400"
+                  "text-accent-foreground hover:underline"
                 )}
               >
                 <span>Forgot password</span>

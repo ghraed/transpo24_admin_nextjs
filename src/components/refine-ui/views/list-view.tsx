@@ -59,7 +59,7 @@ export const ListViewHeader = ({
       </div>
       <div
         className={cn(
-          "rounded-[1.75rem] border border-white/55 bg-card/82 px-5 py-5 shadow-[0_20px_50px_-35px_rgba(15,23,42,0.35)] backdrop-blur md:px-6 md:py-6",
+          "rounded-3xl border border-border bg-card px-5 py-5 shadow-[0_10px_24px_-18px_rgba(17,24,39,0.28)] md:px-6 md:py-6",
           "flex flex-col gap-4 md:flex-row md:items-end md:justify-between",
           headerClassName
         )}

@@ -121,7 +121,7 @@ export default function PaymentDisputesPage() {
         />
       </section>
 
-      <Card className="rounded-[1.75rem] border-white/55 bg-card/86 shadow-[0_20px_50px_-35px_rgba(15,23,42,0.35)] backdrop-blur">
+      <Card className="rounded-3xl border-border bg-card shadow-[0_10px_24px_-18px_rgba(17,24,39,0.28)]">
         <CardHeader className="gap-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
@@ -310,7 +310,7 @@ function SummaryCard({
   icon: React.ReactNode;
 }) {
   return (
-    <Card className="rounded-[1.5rem] border-white/55 bg-card/86 shadow-[0_20px_50px_-35px_rgba(15,23,42,0.35)] backdrop-blur">
+    <Card className="rounded-3xl border-border bg-card shadow-[0_10px_24px_-18px_rgba(17,24,39,0.28)]">
       <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
         <div className="space-y-1.5">
           <CardTitle className="text-sm font-medium tracking-[-0.02em]">

@@ -20,7 +20,7 @@ import {
   ArrowRight,
   ClipboardCheck,
   ListIcon,
-  Shield,
+  PackageCheck,
   WalletCards,
 } from "lucide-react";
 
@@ -41,8 +41,8 @@ export function Sidebar() {
         <div className="flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-sidebar-border/80 bg-sidebar text-sidebar-foreground shadow-[0_25px_60px_-35px_rgba(15,23,42,0.8)]">
           <SidebarHeader className="border-b border-sidebar-border/80 px-4 py-5">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sidebar-primary text-sidebar-primary-foreground shadow-lg shadow-cyan-950/25">
-                <Shield className="h-5 w-5" />
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sidebar-primary text-sidebar-primary-foreground shadow-[0_10px_24px_-12px_rgba(255,197,72,0.9)]">
+                <PackageCheck className="h-5 w-5" />
               </div>
               <div
                 className={cn(
@@ -54,7 +54,7 @@ export function Sidebar() {
                   Transpo24 Admin
                 </div>
                 <div className="text-xs text-sidebar-foreground/65">
-                  Operations control center
+                  Move it. Track it. Done.
                 </div>
               </div>
             </div>
@@ -100,7 +100,7 @@ export function Sidebar() {
                   </div>
                 </div>
                 <Badge className="rounded-full border-0 bg-sidebar-primary/90 px-2.5 py-1 text-[10px] text-sidebar-primary-foreground">
-                  Future-ready
+                  Ready
                 </Badge>
               </div>
               <div className="mt-4 space-y-2">
@@ -161,7 +161,7 @@ function SidebarNavItem({
         tooltip={getDisplayName(item)}
         className={cn(
           "h-auto min-h-14 rounded-2xl px-3 py-3 transition-all duration-200",
-          "data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:shadow-[0_16px_30px_-18px_rgba(34,211,238,0.85)]",
+          "data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:shadow-[0_16px_30px_-18px_rgba(255,197,72,0.9)]",
           "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
         )}
       >

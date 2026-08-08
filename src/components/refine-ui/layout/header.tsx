@@ -12,7 +12,6 @@ import {
   Search,
   Sparkles,
 } from "lucide-react";
-import { ThemeToggle } from "@/components/refine-ui/theme/theme-toggle";
 import { UserAvatar } from "@/components/refine-ui/layout/user-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -47,7 +46,7 @@ export const Header = () => {
     >
       <div
         className={cn(
-          "overflow-hidden rounded-[1.5rem] border border-white/55 bg-background/82 shadow-[0_20px_60px_-35px_rgba(15,23,42,0.45)] backdrop-blur-xl"
+          "overflow-hidden rounded-[1.5rem] border border-border bg-card/92 shadow-[0_10px_24px_-18px_rgba(17,24,39,0.28)] backdrop-blur-xl"
         )}
       >
         <div className="app-shell-grid flex items-center justify-between gap-4 px-4 py-4 md:px-6">
@@ -58,7 +57,7 @@ export const Header = () => {
                 <span>{sectionLabel}</span>
                 {!isMobile ? (
                   <Badge variant="secondary" className="rounded-full px-2.5 py-1 text-[10px]">
-                    Live workspace
+                    Live
                   </Badge>
                 ) : null}
               </div>
@@ -96,7 +95,6 @@ export const Header = () => {
             >
               <Bell className="h-4 w-4" />
             </Button>
-            <ThemeToggle className="h-10 w-10 rounded-full border border-border/70 bg-background/80" />
             <UserDropdown
               fullName={user?.fullName}
               email={user?.email}

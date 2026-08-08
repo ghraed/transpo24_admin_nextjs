@@ -31,6 +31,7 @@ const modules = [
     description: "Manage admin access, roles, active state, and account recovery flows.",
     icon: Shield,
     eyebrow: "Identity & access",
+    iconClass: "bg-[#FFF1C9] text-[#9A6500]",
   },
   {
     title: "Driver Requests",
@@ -38,6 +39,7 @@ const modules = [
     description: "Review onboarding submissions, inspect documents, and approve or reject requests.",
     icon: ClipboardCheck,
     eyebrow: "Operational review",
+    iconClass: "bg-[#FFF1C9] text-[#9A6500]",
   },
   {
     title: "Driver Earnings",
@@ -45,6 +47,7 @@ const modules = [
     description: "Track pending holds, payout retries, and transfer failures for driver earnings.",
     icon: Coins,
     eyebrow: "Billing & payouts",
+    iconClass: "bg-[#FFF1C9] text-[#9A6500]",
   },
   {
     title: "Payments Reconciliation",
@@ -52,6 +55,7 @@ const modules = [
     description: "Run backend reconciliation jobs and review wallet, capture, refund, and transfer exceptions.",
     icon: WalletCards,
     eyebrow: "Finance ops",
+    iconClass: "bg-[#FFF1C9] text-[#9A6500]",
   },
 ];
 
@@ -66,18 +70,18 @@ export default function IndexPage() {
     <Suspense>
       <Authenticated key="home-page">
         <div className="flex flex-col gap-6 pb-2">
-          <section className="overflow-hidden rounded-[2rem] border border-white/55 bg-card/84 shadow-[0_30px_70px_-45px_rgba(15,23,42,0.45)] backdrop-blur">
+          <section className="overflow-hidden rounded-[1.75rem] border border-[#F1D58B] bg-[linear-gradient(135deg,#FFF9E8_0%,#FFFFFF_72%)] shadow-[0_10px_24px_-18px_rgba(17,24,39,0.28)]">
             <div className="app-shell-grid relative px-6 py-7 md:px-8 md:py-9 lg:px-10">
               <div className="absolute inset-y-0 right-0 hidden w-2/5 bg-[radial-gradient(circle_at_center,_color-mix(in_oklab,var(--primary)_22%,transparent)_0,_transparent_62%)] lg:block" />
               <div className="relative max-w-3xl">
-                <Badge className="rounded-full border-0 bg-primary/12 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary shadow-none">
-                  Modern admin shell
+                <Badge className="rounded-full border-0 bg-accent px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-accent-foreground shadow-none">
+                  Transpo24 operations
                 </Badge>
                 <h1 className="mt-4 text-3xl font-semibold tracking-[-0.04em] md:text-5xl">
-                  A cleaner control center for the modules you have now and the ones you add next.
+                  Everything moving through Transpo24, in one place.
                 </h1>
                 <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground md:text-base">
-                  The app now starts from a real dashboard, keeps each feature in a focused workspace, and leaves room for more operational tools without another layout rewrite.
+                  Review drivers, manage access, monitor earnings, and resolve payment issues from one focused workspace.
                 </p>
                 <div className="mt-6 flex flex-wrap items-center gap-3">
                   <Button asChild size="lg" className="rounded-full px-6">
@@ -106,10 +110,10 @@ export default function IndexPage() {
 
                 return (
                   <Link key={module.href} href={module.href} className="group">
-                    <Card className="h-full rounded-[1.75rem] border-white/55 bg-card/84 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_26px_60px_-38px_rgba(15,23,42,0.45)]">
+                    <Card className="h-full rounded-3xl border-border bg-card transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-[0_16px_30px_-22px_rgba(17,24,39,0.38)]">
                       <CardHeader className="gap-3">
                         <div className="flex items-center justify-between gap-3">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                          <div className={cn("flex h-12 w-12 items-center justify-center rounded-2xl", module.iconClass)}>
                             <Icon className="h-5 w-5" />
                           </div>
                           <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover:translate-x-1 group-hover:-translate-y-1" />
@@ -132,7 +136,7 @@ export default function IndexPage() {
               })}
             </div>
 
-            <Card className="rounded-[1.75rem] border-white/55 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--card)_86%,white),color-mix(in_oklab,var(--card)_96%,var(--muted)))]">
+            <Card className="rounded-3xl border-border bg-[linear-gradient(180deg,var(--card),var(--secondary))]">
               <CardHeader className="gap-2">
                 <div className="flex items-center gap-2 text-sm font-semibold">
                   <Sparkles className="h-4 w-4 text-primary" />
@@ -180,7 +184,7 @@ export default function IndexPage() {
 
           <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             <WebPushSettingsCard />
-            <Card className="rounded-[1.75rem] border-white/55 bg-card/84">
+            <Card className="rounded-3xl border-border bg-card">
               <CardHeader className="gap-2">
                 <CardTitle className="text-2xl tracking-[-0.03em]">
                   Notification delivery

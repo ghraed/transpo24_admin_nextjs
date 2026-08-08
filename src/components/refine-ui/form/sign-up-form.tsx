@@ -75,7 +75,7 @@ export const SignUpForm = () => {
         "flex-col",
         "items-center",
         "justify-center",
-        "px-6",
+        "px-6 bg-[radial-gradient(circle_at_top,_rgba(255,197,72,0.28),_transparent_28rem)]",
         "py-8",
         "min-h-svh"
       )}
@@ -83,19 +83,18 @@ export const SignUpForm = () => {
       <div className={cn("flex", "items-center", "justify-center", "gap-2")}>
         {title.icon && (
           <div
-            className={cn("text-foreground", "[&>svg]:w-12", "[&>svg]:h-12")}
+            className={cn("flex h-16 w-16 items-center justify-center rounded-[1.25rem] bg-foreground text-primary shadow-xl", "[&>svg]:w-8", "[&>svg]:h-8")}
           >
             {title.icon}
           </div>
         )}
       </div>
 
-      <Card className={cn("sm:w-[456px]", "p-12", "mt-6")}>
+      <Card className={cn("w-full sm:w-[456px]", "p-7 sm:p-10", "mt-6 rounded-[1.75rem]")}>
         <CardHeader className={cn("px-0")}>
           <CardTitle
             className={cn(
-              "text-green-600",
-              "dark:text-green-400",
+              "text-foreground",
               "text-3xl",
               "font-semibold"
             )}
@@ -105,7 +104,7 @@ export const SignUpForm = () => {
           <CardDescription
             className={cn("text-muted-foreground", "font-medium")}
           >
-            Welcome to lorem ipsum dolor.
+            Create a Transpo24 admin account.
           </CardDescription>
         </CardHeader>
 
@@ -152,13 +151,7 @@ export const SignUpForm = () => {
             <Button
               type="submit"
               size="lg"
-              className={cn(
-                "w-full",
-                "mt-6",
-                "bg-green-600",
-                "hover:bg-green-700",
-                "text-white"
-              )}
+              className={cn("w-full", "mt-6")}
             >
               Sign up
             </Button>
@@ -228,8 +221,7 @@ export const SignUpForm = () => {
             <Link
               to="/login"
               className={cn(
-                "text-blue-600",
-                "dark:text-blue-400",
+                "text-accent-foreground",
                 "font-semibold",
                 "underline"
               )}

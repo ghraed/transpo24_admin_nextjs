@@ -86,7 +86,7 @@ export function DataTable<TData extends BaseRecord>({
       <div
         ref={tableContainerRef}
         className={cn(
-          "overflow-hidden rounded-[1.75rem] border border-white/55 bg-card/86 shadow-[0_20px_50px_-35px_rgba(15,23,42,0.35)] backdrop-blur"
+          "overflow-hidden rounded-3xl border border-border bg-card shadow-[0_10px_24px_-18px_rgba(17,24,39,0.28)]"
         )}
       >
         <Table ref={tableRef} style={{ tableLayout: "fixed", width: "100%" }}>

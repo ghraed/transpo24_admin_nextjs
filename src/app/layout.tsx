@@ -1,12 +1,6 @@
 import type { Metadata } from "next";
 import React, { Suspense } from "react";
-import { Manrope } from "next/font/google";
 import { RefineContext } from "./_refine_context";
-
-const manrope = Manrope({
-  subsets: ["latin"],
-  variable: "--font-manrope",
-});
 
 export const metadata: Metadata = {
   title: "Transpo24 Admin",
@@ -23,7 +17,7 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={manrope.variable}>
+      <body>
         <Suspense>
           <RefineContext>{children}</RefineContext>
         </Suspense>

@@ -40,7 +40,7 @@ export const ForgotPasswordForm = () => {
         "flex-col",
         "items-center",
         "justify-center",
-        "px-6",
+        "px-6 bg-[radial-gradient(circle_at_top,_rgba(255,197,72,0.28),_transparent_28rem)]",
         "py-8",
         "min-h-svh"
       )}
@@ -48,19 +48,18 @@ export const ForgotPasswordForm = () => {
       <div className={cn("flex", "items-center", "justify-center", "gap-2")}>
         {title.icon && (
           <div
-            className={cn("text-foreground", "[&>svg]:w-12", "[&>svg]:h-12")}
+            className={cn("flex h-16 w-16 items-center justify-center rounded-[1.25rem] bg-foreground text-primary shadow-xl", "[&>svg]:w-8", "[&>svg]:h-8")}
           >
             {title.icon}
           </div>
         )}
       </div>
 
-      <Card className={cn("sm:w-[456px]", "p-12", "mt-6")}>
+      <Card className={cn("w-full sm:w-[456px]", "p-7 sm:p-10", "mt-6 rounded-[1.75rem]")}>
         <CardHeader className={cn("px-0")}>
           <CardTitle
             className={cn(
-              "text-blue-600",
-              "dark:text-blue-400",
+              "text-foreground",
               "text-3xl",
               "font-semibold"
             )}
@@ -90,12 +89,7 @@ export const ForgotPasswordForm = () => {
                 />
                 <Button
                   type="submit"
-                  className={cn(
-                    "bg-blue-600",
-                    "hover:bg-blue-700",
-                    "text-white",
-                    "px-6"
-                  )}
+                  className={cn("px-6")}
                 >
                   Send
                 </Button>
