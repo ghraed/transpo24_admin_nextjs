@@ -194,6 +194,8 @@ function SidebarNavItem({
             >
               {item.name === "admin_users"
                 ? "Manage staff access and status"
+                : item.name === "delivery_operations"
+                  ? "Trace requests, offers, and deliveries"
                 : item.name === "driver_earnings"
                   ? "Track pending and failed payouts"
                   : item.name === "payment_disputes"

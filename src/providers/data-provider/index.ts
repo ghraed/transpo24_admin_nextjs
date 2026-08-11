@@ -248,6 +248,22 @@ export const dataProvider: DataProviders = {
     },
     getApiUrl: () => API_URL,
   },
+  adminDeliveryOperations: {
+    ...simpleRestProvider,
+    custom: async (params) => {
+      try {
+        if (params.url?.startsWith("/admin/delivery-operations")) {
+          const { data } = await axiosInstance.get(`${API_URL}${params.url}`);
+          return { data };
+        }
+
+        return simpleRestProvider.custom?.(params);
+      } catch (error) {
+        throw normalizeHttpError(error);
+      }
+    },
+    getApiUrl: () => API_URL,
+  },
   adminPaymentDisputes: {
     ...simpleRestProvider,
     custom: async (params) => {

@@ -20,6 +20,7 @@ import {
   AlertTriangle,
   ClipboardCheck,
   Coins,
+  Route,
   Shield,
   WalletCards,
 } from "lucide-react";
@@ -61,6 +62,16 @@ export const RefineContext = ({ children }: RefineContextProps) => {
                 label: "Driver Requests",
                 icon: <ClipboardCheck className="h-4 w-4" />,
                 dataProviderName: "adminDriverReviews",
+              },
+            },
+            {
+              name: "delivery_operations",
+              identifier: "delivery_operations",
+              list: "/delivery-operations",
+              meta: {
+                label: "Delivery Operations",
+                icon: <Route className="h-4 w-4" />,
+                dataProviderName: "adminDeliveryOperations",
               },
             },
             {

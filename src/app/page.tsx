@@ -7,6 +7,7 @@ import {
   ArrowRight,
   ClipboardCheck,
   Coins,
+  Route,
   Shield,
   Sparkles,
   Users,
@@ -40,6 +41,14 @@ const modules = [
     icon: ClipboardCheck,
     eyebrow: "Operational review",
     iconClass: "bg-[#FFF1C9] text-[#9A6500]",
+  },
+  {
+    title: "Delivery Operations",
+    href: "/delivery-operations",
+    description: "Trace every client request from driver offers and assignment through delivery proof and payment status.",
+    icon: Route,
+    eyebrow: "Live delivery tracking",
+    iconClass: "bg-[#E5F6F1] text-[#087968]",
   },
   {
     title: "Driver Earnings",
@@ -81,12 +90,12 @@ export default function IndexPage() {
                   Everything moving through Transpo24, in one place.
                 </h1>
                 <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground md:text-base">
-                  Review drivers, manage access, monitor earnings, and resolve payment issues from one focused workspace.
+                  Trace deliveries, review drivers, manage access, monitor earnings, and resolve payment issues from one focused workspace.
                 </p>
                 <div className="mt-6 flex flex-wrap items-center gap-3">
                   <Button asChild size="lg" className="rounded-full px-6">
-                    <Link href="/driver-reviews">
-                      Open driver requests
+                    <Link href="/delivery-operations">
+                      Track deliveries
                       <ArrowRight className="h-4 w-4" />
                     </Link>
                   </Button>
