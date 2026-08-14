@@ -4,6 +4,7 @@ import React from "react";
 import { useCustom } from "@refinedev/core";
 import {
   CheckCircle2,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   CircleDollarSign,
@@ -20,10 +21,10 @@ import {
 } from "lucide-react";
 
 import { ListView, ListViewHeader } from "@/components/refine-ui/views/list-view";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { DeliveryOperation, DeliveryOperationsResponse, DeliveryOperationsView } from "./types";
@@ -108,14 +109,13 @@ export default function DeliveryOperationsPage() {
             </TabsList>
           </Tabs>
         </CardHeader>
-        <CardContent>
-          {query.isLoading ? <div className="py-16 text-center text-sm text-muted-foreground">Loading delivery relationships…</div> : null}
-          {query.error ? <div className="py-16 text-center text-sm text-destructive">{query.error instanceof Error ? query.error.message : "Could not load delivery operations."}</div> : null}
-          {!query.isLoading && !query.error && !response?.items?.length ? <div className="py-16 text-center text-sm text-muted-foreground">No requests match this view.</div> : null}
-          {response?.items?.length ? <Accordion type="single" collapsible className="divide-y rounded-2xl border bg-muted/[0.18] px-4 sm:px-5">{response.items.map((item) => <RequestRow key={item.id} item={item} />)}</Accordion> : null}
-          {response?.items?.length ? <div className="mt-5 flex items-center justify-between gap-3 text-sm text-muted-foreground"><span>Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, response.total)} of {response.total}</span><div className="flex gap-2"><Button variant="outline" size="sm" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page === 1}><ChevronLeft className="h-4 w-4" /> Previous</Button><Button variant="outline" size="sm" onClick={() => setPage((current) => Math.min(totalPages, current + 1))} disabled={page === totalPages}>Next <ChevronRight className="h-4 w-4" /></Button></div></div> : null}
-        </CardContent>
       </Card>
+
+      {query.isLoading ? <div className="rounded-3xl border border-border bg-card py-16 text-center text-sm text-muted-foreground">Loading delivery relationships…</div> : null}
+      {query.error ? <div className="rounded-3xl border border-destructive/30 bg-destructive/5 p-5 text-sm text-destructive">{query.error instanceof Error ? query.error.message : "Could not load delivery operations."}</div> : null}
+      {!query.isLoading && !query.error && !response?.items?.length ? <div className="rounded-3xl border border-dashed border-border bg-card py-16 text-center text-sm text-muted-foreground">No requests match this view.</div> : null}
+      {response?.items?.length ? <section className="grid gap-4">{response.items.map((item) => <RequestRow key={item.id} item={item} />)}</section> : null}
+      {response?.items?.length ? <div className="flex items-center justify-between gap-3 rounded-3xl border border-border bg-card px-5 py-4 text-sm text-muted-foreground"><span>Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, response.total)} of {response.total}</span><div className="flex gap-2"><Button variant="outline" size="sm" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page === 1}><ChevronLeft className="h-4 w-4" /> Previous</Button><Button variant="outline" size="sm" onClick={() => setPage((current) => Math.min(totalPages, current + 1))} disabled={page === totalPages}>Next <ChevronRight className="h-4 w-4" /></Button></div></div> : null}
     </ListView>
   );
 }
@@ -126,16 +126,21 @@ function SummaryCard({ title, value, icon, accent = "text-foreground" }: { title
 
 function RequestRow({ item }: { item: DeliveryOperation }) {
   const acceptedOffer = item.offers.find((offer) => offer.id === item.acceptedOfferId);
-  return <AccordionItem value={item.id} className="border-0">
-    <AccordionTrigger className="py-5 hover:no-underline">
+  return <Collapsible>
+    <article className="overflow-hidden rounded-3xl border border-border bg-card shadow-[0_10px_24px_-18px_rgba(17,24,39,0.28)]">
+    <div className="flex flex-col gap-4 px-5 py-5 lg:flex-row lg:items-start lg:justify-between md:px-6">
+    <div className="min-w-0 flex-1">
       <div className="min-w-0 flex-1 text-left"><div className="flex flex-wrap items-center gap-2"><span className="font-mono text-xs text-muted-foreground">#{item.id.slice(-8)}</span><Badge variant={statusVariant(item.status)} className="rounded-full">{label(item.status)}</Badge>{item.isImmediate ? <Badge variant="outline" className="rounded-full">Immediate</Badge> : null}</div><div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-center"><div className="min-w-0"><div className="font-semibold">{item.customer.name}</div><div className="truncate text-xs text-muted-foreground">{item.service} · {item.item.title ?? label(item.item.type)}</div></div><RouteSummary pickup={item.route.pickupAddress} dropoff={item.route.dropoffAddress} compact /><div className="min-w-0"><div className="text-xs text-muted-foreground">{item.assignedDriver ? "Assigned driver" : "Assignment"}</div><div className="truncate text-sm font-medium">{item.assignedDriver?.name ?? "Awaiting acceptance"}</div></div><div className="text-right text-xs text-muted-foreground">{item.offers.length} offer{item.offers.length === 1 ? "" : "s"}<br />{formatDate(item.createdAt)}</div></div></div>
-    </AccordionTrigger>
-    <AccordionContent className="pb-6"><div className="grid gap-4 border-t pt-5 xl:grid-cols-[1.1fr_1.25fr_1fr]">
+    </div>
+    <CollapsibleTrigger asChild><Button variant="outline" className="shrink-0 rounded-full px-5">Open details<ChevronDown className="h-4 w-4" /></Button></CollapsibleTrigger>
+    </div>
+    <CollapsibleContent><div className="m-5 grid gap-4 border-t border-border/70 pt-5 md:m-6 xl:grid-cols-[1.1fr_1.25fr_1fr]">
       <InfoSection title="Client request" icon={<UserRound className="h-4 w-4" />}><Party party={item.customer} /><RouteSummary pickup={item.route.pickupAddress} dropoff={item.route.dropoffAddress} /><DetailRows entries={[['Scheduled pickup', formatDate(item.scheduledPickupAt)], ['Submitted', formatDate(item.submittedAt ?? item.createdAt)], ['Item', item.item.title ?? label(item.item.type)], ['Description', item.item.description ?? '—']]} /><ItemDetails details={item.item.details} /></InfoSection>
       <InfoSection title="Offers & assignment" icon={<Send className="h-4 w-4" />}><div className="rounded-xl border bg-background p-3"><div className="text-xs font-medium text-muted-foreground">Selected driver</div>{item.assignedDriver ? <><Party party={item.assignedDriver} /><div className="mt-2 text-sm">{acceptedOffer ? `${formatAmount(acceptedOffer.price, acceptedOffer.currency)} · accepted offer` : "Assigned directly"}</div></> : <div className="mt-2 text-sm text-muted-foreground">No driver has taken this delivery.</div>}</div><div className="space-y-2">{item.offers.length ? item.offers.map((offer) => <Offer key={offer.id} offer={offer} accepted={offer.id === item.acceptedOfferId} />) : <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">No driver offers sent yet.</div>}</div></InfoSection>
       <InfoSection title="Delivery & settlement" icon={<Truck className="h-4 w-4" />}><DeliveryTimeline item={item} /><div className="rounded-xl border bg-background p-3"><div className="mb-2 flex items-center gap-2 text-sm font-medium"><CircleDollarSign className="h-4 w-4 text-muted-foreground" /> Payment</div><DetailRows entries={[["Final price", formatAmount(item.payment.finalPrice, item.payment.currency)], ["Payment", label(item.payment.status)], ["Method", label(item.payment.method)], ["Held / captured", `${formatAmount(item.payment.heldAmount, item.payment.currency)} / ${formatAmount(item.payment.capturedAmount, item.payment.currency)}`]]} /></div><Proofs item={item} /></InfoSection>
-    </div></AccordionContent>
-  </AccordionItem>;
+    </div></CollapsibleContent>
+    </article>
+  </Collapsible>;
 }
 
 function InfoSection({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) { return <section className="space-y-3"><div className="flex items-center gap-2 text-sm font-semibold">{icon}{title}</div>{children}</section>; }
