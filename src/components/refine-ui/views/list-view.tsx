@@ -14,7 +14,15 @@ type ListViewProps = PropsWithChildren<{
 
 export function ListView({ children, className }: ListViewProps) {
   return (
-    <div className={cn("flex flex-col", "gap-4", className)}>{children}</div>
+    <div
+      className={cn(
+        "mx-auto my-2 flex w-full max-w-[1440px] flex-col px-2 md:my-4 md:px-4 xl:px-6",
+        "gap-4",
+        className,
+      )}
+    >
+      {children}
+    </div>
   );
 }
 
