@@ -40,7 +40,7 @@ function formatDate(value: string | null): string {
     return "-";
   }
 
-  return new Date(value).toLocaleString();
+  return new Date(value).toLocaleString(undefined, { hourCycle: "h23" });
 }
 
 function formatAmount(value: number | null, currency: string | null): string {

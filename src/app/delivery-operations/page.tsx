@@ -39,7 +39,7 @@ const views: Array<{ value: DeliveryOperationsView; label: string }> = [
 ];
 
 function formatDate(value: string | null) {
-  return value ? new Date(value).toLocaleString() : "Not recorded";
+  return value ? new Date(value).toLocaleString(undefined, { hourCycle: "h23" }) : "Not recorded";
 }
 
 function formatAmount(value: number | null, currency: string | null) {

@@ -130,7 +130,7 @@ function statusBadgeVariant(status: ReviewStatus | DocumentStatus | DriverReview
 
 function formatDate(value: string | null): string {
   if (!value) return "-";
-  return new Date(value).toLocaleString();
+  return new Date(value).toLocaleString(undefined, { hourCycle: "h23" });
 }
 
 function formatStatus(status: string): string {
