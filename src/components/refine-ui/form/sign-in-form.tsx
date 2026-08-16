@@ -70,7 +70,7 @@ export const SignInForm = () => {
               "font-semibold"
             )}
           >
-            Welcome back123
+            Welcome back
           </CardTitle>
           <CardDescription
             className={cn("text-muted-foreground", "font-medium")}
