@@ -10,7 +10,6 @@ import {
   Coins,
   Route,
   Shield,
-  WalletCards,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -54,14 +53,6 @@ const modules = [
     description: "Track pending holds, payout retries, and transfer failures for driver earnings.",
     icon: Coins,
     eyebrow: "Billing & payouts",
-    iconClass: "bg-[#FFF1C9] text-[#9A6500]",
-  },
-  {
-    title: "Payments Reconciliation",
-    href: "/payments-reconciliation",
-    description: "Run backend reconciliation jobs and review wallet, capture, refund, and transfer exceptions.",
-    icon: WalletCards,
-    eyebrow: "Finance ops",
     iconClass: "bg-[#FFF1C9] text-[#9A6500]",
   },
 ];
