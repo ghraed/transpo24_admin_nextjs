@@ -54,6 +54,17 @@ Permission states:
 - Service-worker updates follow the browser's normal update lifecycle.
 - Different browsers may vary in how aggressively they surface background notifications or persist permission prompts.
 
+## Production deployment
+
+Every push to `master` automatically deploys the same commit to the production server's `production` branch through `.github/workflows/deploy-production.yml`.
+
+Before the first deployment, add these GitHub Actions repository secrets:
+
+- `PRODUCTION_DEPLOY_SSH_KEY`: the private SSH key authorized for `transpo-24-admin@88.99.63.223`.
+- `PRODUCTION_KNOWN_HOSTS`: the exact `known_hosts` entry for `88.99.63.223` (generate it from a trusted machine with `ssh-keyscan -H 88.99.63.223`).
+
+The server's existing receive hook is responsible for checking out, building, and restarting the production app after the push arrives.
+
 ## Commands
 
 ```bash

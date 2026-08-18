@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { Suspense } from "react";
-import { Authenticated } from "@refinedev/core";
+import { Authenticated, useLogout } from "@refinedev/core";
 import {
   ArrowRight,
   BellRing,
   ClipboardCheck,
   Coins,
+  LogOut,
   Route,
   Shield,
 } from "lucide-react";
@@ -59,6 +60,7 @@ const modules = [
 
 export default function IndexPage() {
   const webPush = useWebPushNotifications();
+  const { mutate: logout, isPending: isLoggingOut } = useLogout();
   const canEnableNotifications =
     webPush.permission === "default" || webPush.status === "not-subscribed";
 
@@ -101,6 +103,17 @@ export default function IndexPage() {
                       : webPush.status === "subscribed"
                         ? "Notifications enabled"
                         : "Enable notifications"}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="lg"
+                    variant="outline"
+                    className="rounded-full border-destructive/30 px-6 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                    onClick={() => logout()}
+                    disabled={isLoggingOut}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    {isLoggingOut ? "Logging out..." : "Logout"}
                   </Button>
                 </div>
               </div>

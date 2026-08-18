@@ -100,9 +100,24 @@ export const authProviderClient: AuthProvider = {
     }
   },
   logout: async () => {
-    await cleanupWebPushOnLogout().catch(() => undefined);
-    Cookies.remove(TOKEN_COOKIE, { path: "/" });
-    Cookies.remove(AUTH_COOKIE, { path: "/" });
+    const token = Cookies.get(TOKEN_COOKIE);
+
+    try {
+      await cleanupWebPushOnLogout().catch(() => undefined);
+
+      if (token) {
+        await fetch(`${API_URL}/auth/admin/logout`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }).catch(() => undefined);
+      }
+    } finally {
+      Cookies.remove(TOKEN_COOKIE, { path: "/" });
+      Cookies.remove(AUTH_COOKIE, { path: "/" });
+    }
+
     return {
       success: true,
       redirectTo: "/login",

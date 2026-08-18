@@ -1,0 +1,42 @@
+name: Deploy production
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: admin-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Push master to production
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Check out the pushed commit
+        uses: actions/checkout@v4
+
+      - name: Configure production SSH access
+        env:
+          PRODUCTION_DEPLOY_SSH_KEY: ${{ secrets.PRODUCTION_DEPLOY_SSH_KEY }}
+          PRODUCTION_KNOWN_HOSTS: ${{ secrets.PRODUCTION_KNOWN_HOSTS }}
+        run: |
+          test -n "$PRODUCTION_DEPLOY_SSH_KEY"
+          test -n "$PRODUCTION_KNOWN_HOSTS"
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$PRODUCTION_DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$PRODUCTION_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Deploy master to the production server
+        env:
+          GIT_SSH_COMMAND: ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes
+        run: |
+          git push ssh://transpo-24-admin@88.99.63.223/home/transpo-24-admin/repos/admin.git HEAD:refs/heads/production

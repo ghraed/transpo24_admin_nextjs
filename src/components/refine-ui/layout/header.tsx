@@ -125,6 +125,7 @@ function UserDropdown({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
+          disabled={isLoggingOut}
           className="flex items-center gap-3 rounded-full border border-border/70 bg-background/80 px-1 py-1 pr-3 text-left transition-colors hover:bg-accent"
         >
           <UserAvatar />
@@ -146,6 +147,7 @@ function UserDropdown({
           </div>
         </div>
         <DropdownMenuItem
+          disabled={isLoggingOut}
           className="mt-2 rounded-xl text-destructive focus:text-destructive"
           onClick={() => {
             logout();
