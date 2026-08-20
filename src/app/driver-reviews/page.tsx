@@ -196,8 +196,18 @@ export default function DriverReviewsPage() {
 
     return matchesSearch && matchesDriverStatus && matchesVehicleStatus;
   });
+  const onboardingInProgress = filteredReviews.filter(
+    (review) =>
+      review.status === "PENDING_PROFILE" ||
+      review.status === "PENDING_DOCUMENTS",
+  );
   const pendingReviews = filteredReviews.filter((review) => review.status === "PENDING_REVIEW");
-  const reviewedHistory = filteredReviews.filter((review) => review.status !== "PENDING_REVIEW");
+  const reviewedHistory = filteredReviews.filter(
+    (review) =>
+      review.status !== "PENDING_REVIEW" &&
+      review.status !== "PENDING_PROFILE" &&
+      review.status !== "PENDING_DOCUMENTS",
+  );
   const approvedReviews = filteredReviews.filter((review) => review.status === "APPROVED");
   const declinedReviews = filteredReviews.filter((review) => review.status === "REJECTED");
   const pendingVehicles = filteredReviews.flatMap((review) => review.vehicles).filter((vehicle) => vehicle.status === "PENDING_REVIEW");
@@ -419,6 +429,23 @@ export default function DriverReviewsPage() {
         </section>
       ) : null}
 
+      {onboardingInProgress.length > 0 ? (
+        <section className="space-y-4">
+          <div className="flex items-center justify-between px-1">
+            <div>
+              <h3 className="text-xl font-semibold tracking-[-0.03em]">Onboarding in progress</h3>
+              <p className="mt-1 text-sm text-muted-foreground">New drivers who have not yet submitted a complete application for review.</p>
+            </div>
+            <Badge className="rounded-full px-3 py-1" variant="secondary">{onboardingInProgress.length} in progress</Badge>
+          </div>
+          <div className="grid gap-4">
+            {onboardingInProgress.map((review) => (
+              <DriverReviewCard key={review.id} review={review} isMutating={isMutating} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       {reviewedHistory.length > 0 ? (
         <section className="space-y-4">
           <div className="flex items-center justify-between px-1">
@@ -544,7 +571,9 @@ function DriverReviewCard({
             {review.email} · {review.phone}
           </p>
           <p className="text-sm text-muted-foreground">
-            Submitted: {formatDate(review.submittedForReviewAt)}
+            {review.submittedForReviewAt
+              ? `Submitted: ${formatDate(review.submittedForReviewAt)}`
+              : "Application not submitted yet"}
           </p>
           <p className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground"><MapPin className="h-3.5 w-3.5" /> {review.city || "Location unavailable"} <span>· Coverage: {review.coverageAreas.length > 0 ? review.coverageAreas.join(", ") : "-"}</span></p>
           <div className="flex flex-wrap gap-2 pt-1">
