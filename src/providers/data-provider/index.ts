@@ -284,6 +284,36 @@ export const dataProvider: DataProviders = {
     },
     getApiUrl: () => API_URL,
   },
+  adminChatReports: {
+    ...simpleRestProvider,
+    custom: async (params) => {
+      try {
+        if (params.url?.startsWith("/admin/chat-reports")) {
+          const method = params.method?.toLowerCase() ?? "get";
+          if (method === "get") {
+            const { data } = await axiosInstance.get(`${API_URL}${params.url}`);
+            return { data };
+          }
+          if (method === "put") {
+            const body =
+              (params as { payload?: unknown; values?: unknown }).payload ??
+              (params as { payload?: unknown; values?: unknown }).values ??
+              {};
+            const { data } = await axiosInstance.put(
+              `${API_URL}${params.url}`,
+              body,
+            );
+            return { data };
+          }
+        }
+
+        return simpleRestProvider.custom?.(params);
+      } catch (error) {
+        throw normalizeHttpError(error);
+      }
+    },
+    getApiUrl: () => API_URL,
+  },
   adminPaymentsReconciliation: {
     ...simpleRestProvider,
     custom: async (params) => {

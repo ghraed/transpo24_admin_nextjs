@@ -20,6 +20,7 @@ import {
   AlertTriangle,
   ClipboardCheck,
   Coins,
+  MessageSquareWarning,
   Route,
   Shield,
   WalletCards,
@@ -82,6 +83,16 @@ export const RefineContext = ({ children }: RefineContextProps) => {
                 label: "Driver Earnings",
                 icon: <Coins className="h-4 w-4" />,
                 dataProviderName: "adminDriverEarnings",
+              },
+            },
+            {
+              name: "chat_reports",
+              identifier: "chat_reports",
+              list: "/chat-reports",
+              meta: {
+                label: "Chat Safety Reports",
+                icon: <MessageSquareWarning className="h-4 w-4" />,
+                dataProviderName: "adminChatReports",
               },
             },
             {
