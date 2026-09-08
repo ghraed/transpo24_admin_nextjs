@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { RequestDocuments } from "@/components/request-documents";
 import { useCustom } from "@refinedev/core";
 import {
   CheckCircle2,
@@ -138,6 +139,7 @@ function RequestRow({ item }: { item: DeliveryOperation }) {
       <InfoSection title="Client request" icon={<UserRound className="h-4 w-4" />}><Party party={item.customer} /><RouteSummary pickup={item.route.pickupAddress} dropoff={item.route.dropoffAddress} /><DetailRows entries={[['Scheduled pickup', formatDate(item.scheduledPickupAt)], ['Submitted', formatDate(item.submittedAt ?? item.createdAt)], ['Item', item.item.title ?? label(item.item.type)], ['Description', item.item.description ?? '—']]} /><ItemDetails details={item.item.details} /></InfoSection>
       <InfoSection title="Offers & assignment" icon={<Send className="h-4 w-4" />}><div className="rounded-xl border bg-background p-3"><div className="text-xs font-medium text-muted-foreground">Selected driver</div>{item.assignedDriver ? <><Party party={item.assignedDriver} /><div className="mt-2 text-sm">{acceptedOffer ? `${formatAmount(acceptedOffer.price, acceptedOffer.currency)} · accepted offer` : "Assigned directly"}</div></> : <div className="mt-2 text-sm text-muted-foreground">No driver has taken this delivery.</div>}</div><div className="space-y-2">{item.offers.length ? item.offers.map((offer) => <Offer key={offer.id} offer={offer} accepted={offer.id === item.acceptedOfferId} />) : <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">No driver offers sent yet.</div>}</div></InfoSection>
       <InfoSection title="Delivery & settlement" icon={<Truck className="h-4 w-4" />}><DeliveryTimeline item={item} /><div className="rounded-xl border bg-background p-3"><div className="mb-2 flex items-center gap-2 text-sm font-medium"><CircleDollarSign className="h-4 w-4 text-muted-foreground" /> Payment</div><DetailRows entries={[["Final price", formatAmount(item.payment.finalPrice, item.payment.currency)], ["Payment", label(item.payment.status)], ["Method", label(item.payment.method)], ["Held / captured", `${formatAmount(item.payment.heldAmount, item.payment.currency)} / ${formatAmount(item.payment.capturedAmount, item.payment.currency)}`]]} /></div><Proofs item={item} /></InfoSection>
+      <RequestDocuments requestId={item.id} />
     </div></CollapsibleContent>
     </article>
   </Collapsible>;
