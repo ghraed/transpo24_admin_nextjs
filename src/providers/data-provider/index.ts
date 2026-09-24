@@ -121,6 +121,25 @@ const simpleRestProvider = dataProviderSimpleRest(API_URL, axiosInstance);
 
 export const dataProvider: DataProviders = {
   default: simpleRestProvider,
+  adminRouteBlocks: {
+    ...simpleRestProvider,
+    custom: async (params) => {
+      try {
+        const path = params.url;
+        if (!/^\/admin\/route-blocks(?:\/[^/?]+)?(?:\?.*)?$/.test(path)) {
+          throw new Error("Unsupported route-block endpoint.");
+        }
+        const { data } = await axiosInstance.request({
+          url: `${API_URL}${path}`,
+          method: params.method,
+          data: params.payload,
+        });
+        return { data };
+      } catch (error) {
+        throw normalizeHttpError(error);
+      }
+    },
+  },
   adminUsers: {
     ...simpleRestProvider,
     getList: async (params) => {

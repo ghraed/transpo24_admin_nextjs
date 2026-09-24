@@ -25,6 +25,14 @@ import { cn } from "@/lib/utils";
 
 const modules = [
   {
+    title: "Route Blocks",
+    href: "/route-blocks",
+    description: "Manage directional route restrictions. Routes are allowed unless an active block applies.",
+    icon: Route,
+    eyebrow: "Operations",
+    iconClass: "bg-[#FFF1C9] text-[#9A6500]",
+  },
+  {
     title: "Admin Users",
     href: "/admin-users",
     description: "Manage admin access, roles, active state, and account recovery flows.",

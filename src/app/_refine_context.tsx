@@ -43,6 +43,17 @@ export const RefineContext = ({ children }: RefineContextProps) => {
           routerProvider={routerProvider}
           resources={[
             {
+              name: "route_blocks",
+              list: "/route-blocks",
+              create: "/route-blocks/create",
+              edit: "/route-blocks/edit/:id",
+              meta: {
+                label: "Route Blocks",
+                icon: <Route className="h-4 w-4" />,
+                dataProviderName: "adminRouteBlocks",
+              },
+            },
+            {
               name: "admin_users",
               identifier: "admin_users",
               list: "/admin-users",

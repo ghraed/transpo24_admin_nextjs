@@ -192,7 +192,9 @@ function SidebarNavItem({
                   : "text-sidebar-foreground/55"
               )}
             >
-              {item.name === "admin_users"
+              {item.name === "route_blocks"
+                ? "Manage directional route restrictions"
+                : item.name === "admin_users"
                 ? "Manage staff access and status"
                 : item.name === "delivery_operations"
                   ? "Trace requests, offers, and deliveries"
