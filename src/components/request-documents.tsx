@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { API_URL, axiosInstance } from '@/providers/data-provider';
+import { API_URL, axiosInstance } from '@/lib/api/client';
 import { Button } from '@/components/ui/button';
 const labels: Record<string, string> = {
   PICKUP_AUTHORIZATION: 'Abholvollmacht',

@@ -1,21 +1,17 @@
 "use client";
 
-import React from "react";
-import { Refine, GitHubBanner } from "@refinedev/core";
+import { Refine } from "@refinedev/core";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
+import React from "react";
 
 import routerProvider from "@refinedev/nextjs-router";
 
-import { dataProvider } from "@providers/data-provider";
-import { ErrorComponent } from "@/components/refine-ui/layout/error-component";
-import { Layout } from "@/components/refine-ui/layout/layout";
-import { Header } from "@/components/refine-ui/layout/header";
-import { useNotificationProvider } from "@/components/refine-ui/notification/use-notification-provider";
-import { Toaster } from "@/components/refine-ui/notification/toaster";
-import { ThemeProvider } from "@/components/refine-ui/theme/theme-provider";
-import { WebPushProvider } from "@/components/web-push/web-push-provider";
 import "@/app/globals.css";
+import { Toaster } from "@/components/refine-ui/notification/toaster";
+import { useNotificationProvider } from "@/components/refine-ui/notification/use-notification-provider";
+import { ThemeProvider } from "@/components/refine-ui/theme/theme-provider";
 import { authProviderClient } from "@providers/auth-provider/auth-provider.client";
+import { dataProvider } from "@providers/data-provider";
 import {
   AlertTriangle,
   ClipboardCheck,
@@ -136,11 +132,11 @@ export const RefineContext = ({ children }: RefineContextProps) => {
             },
           }}
         >
-          <WebPushProvider>
+          <>
             {children}
             <Toaster />
             <RefineKbar />
-          </WebPushProvider>
+          </>
         </Refine>
       </ThemeProvider>
     </RefineKbarProvider>

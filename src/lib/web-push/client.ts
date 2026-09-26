@@ -1,6 +1,6 @@
 "use client";
 
-import { axiosInstance, API_URL } from "../../providers/data-provider";
+import { axiosInstance, API_URL } from "../api/client";
 import Cookies from "js-cookie";
 
 import {

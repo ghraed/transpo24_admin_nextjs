@@ -1,4 +1,25 @@
-# Transpo_24 Admin
+# Transpo24 Admin
+
+Run commands from `admin/`, the Next.js application and Git repository root. Use Node 22 (`nvm use`) and the pinned pnpm version (`corepack enable`, then `pnpm install --frozen-lockfile`).
+
+## Structure
+
+- `src/app/(auth)`: login, registration, and password reset pages.
+- `src/app/(protected)`: a shared server session check and client session boundary; existing URLs are preserved.
+- `src/app/(protected)/(dashboard)`: the shared navigation layout and operational routes.
+- `src/features`: domain-specific screens, API adapters, types, and, for the larger screens, hooks and presentation components.
+- `src/lib/api`: HTTP client, error normalization, and the common Refine adapter.
+- `src/lib/auth`: session validation shared by the server and browser, with regression tests.
+- `src/components`: shared UI and layout components.
+
+Account deletion remains public. Proof images require an admin session but use their own full-screen presentation.
+
+## Authentication
+
+Session checks call the existing guarded `GET /admin/users/:id` endpoint with the bearer token. The token subject is decoded only to locate the account; the backend validates its signature, expiry, active state, and admin role. Both legacy signed tokens and JWTs are supported. Identity and permissions come from the API, not the `auth` cookie. Backend failures remain retryable errors. The API URL must be reachable from both the Next.js server and the browser.
+
+The existing direct-to-API bearer-token model is retained: the browser-readable token cookie is required by API and web-push requests. It uses SameSite=Lax and Secure on HTTPS. Migrating to an HttpOnly session would also require moving authenticated browser API calls behind a server proxy.
+
 
 ## Environment
 
@@ -56,7 +77,7 @@ Permission states:
 
 ## Production deployment
 
-Every push to `master` automatically deploys the same commit to the production server's `production` branch through `.github/workflows/deploy-production.yml`.
+Every push to `master` runs dependency installation, lint, type checking, unit tests, and a production build. Only after those checks pass does it deploy the same commit to the production server's `production` branch through `.github/workflows/deploy-production.yml`.
 
 Before the first deployment, add these GitHub Actions repository secrets:
 
@@ -70,6 +91,10 @@ The server's existing receive hook is responsible for checking out, building, an
 ```bash
 npm run lint
 npm run typecheck
-npm run test:web-push
+npm test
 npm run build
 ```
+
+The browser regression suite uses a local mock API and starts its own Next.js development server on ports 3215 and 3216. With `playwright-core` available in `NODE_PATH` and Chrome installed, run `npm run test:browser`. It does not call the real backend.
+
+Docker uses Node 22 and the pnpm lockfile. Pass the `NEXT_PUBLIC_*` values listed above as Docker build arguments; Next.js embeds public configuration at build time. Local environment files are excluded from the Docker context.

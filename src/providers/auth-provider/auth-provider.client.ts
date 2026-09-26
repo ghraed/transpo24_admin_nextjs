@@ -4,43 +4,32 @@ import type { AuthProvider } from "@refinedev/core";
 import Cookies from "js-cookie";
 import { cleanupWebPushOnLogout } from "@/lib/web-push";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+import { API_URL } from "@/lib/api/config";
+import { extractErrorMessage } from "@/lib/api/errors";
+import { validateAdminSession, type AdminUser } from "@/lib/auth/session";
 
 const AUTH_COOKIE = "auth";
 const TOKEN_COOKIE = "token";
 
-type AdminUser = {
-  id: string;
-  name: string;
-  email: string;
-  role: "ADMIN";
-};
+function clearSession() {
+  Cookies.remove(TOKEN_COOKIE, { path: "/" });
+  Cookies.remove(AUTH_COOKIE, { path: "/" });
+}
 
-function extractErrorMessage(data: unknown): string | null {
-  if (!data || typeof data !== "object") {
-    return null;
-  }
-
-  const candidate = data as { message?: unknown; error?: unknown };
-
-  if (typeof candidate.message === "string" && candidate.message.trim()) {
-    return candidate.message;
-  }
-
-  if (Array.isArray(candidate.message)) {
-    const joined = candidate.message
-      .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
-      .join(", ");
-    if (joined) {
-      return joined;
-    }
-  }
-
-  if (typeof candidate.error === "string" && candidate.error.trim()) {
-    return candidate.error;
-  }
-
-  return null;
+// Coalesce simultaneous Refine checks without caching revoked sessions.
+let pending: { token: string; result: Promise<AdminUser | null> } | undefined;
+function getSession(): Promise<AdminUser | null> {
+  const token = Cookies.get(TOKEN_COOKIE);
+  if (!token) return Promise.resolve(null);
+  if (pending?.token === token) return pending.result;
+  const result = validateAdminSession(token).then(user => {
+    if (!user && Cookies.get(TOKEN_COOKIE) === token) clearSession();
+    return user;
+  }).finally(() => {
+    if (pending?.result === result) pending = undefined;
+  });
+  pending = { token, result };
+  return result;
 }
 
 export const authProviderClient: AuthProvider = {
@@ -73,12 +62,19 @@ export const authProviderClient: AuthProvider = {
         user: AdminUser;
       };
 
+      if (!data.accessToken || data.user?.role !== "ADMIN") {
+        return { success: false, error: { name: "LoginError", message: "Administrator access is required." } };
+      }
       Cookies.set(TOKEN_COOKIE, data.accessToken, {
         expires: 30,
+        sameSite: "lax",
+        secure: window.location.protocol === "https:",
         path: "/",
       });
       Cookies.set(AUTH_COOKIE, JSON.stringify(data.user), {
         expires: 30,
+        sameSite: "lax",
+        secure: window.location.protocol === "https:",
         path: "/",
       });
 
@@ -114,8 +110,7 @@ export const authProviderClient: AuthProvider = {
         }).catch(() => undefined);
       }
     } finally {
-      Cookies.remove(TOKEN_COOKIE, { path: "/" });
-      Cookies.remove(AUTH_COOKIE, { path: "/" });
+      clearSession();
     }
 
     return {
@@ -124,36 +119,21 @@ export const authProviderClient: AuthProvider = {
     };
   },
   check: async () => {
-    const token = Cookies.get(TOKEN_COOKIE);
-    if (token) {
-      return {
-        authenticated: true,
-      };
+    try {
+      const user = await getSession();
+      if (user) return { authenticated: true };
+      return { authenticated: false, logout: true, redirectTo: "/login" };
+    } catch (error) {
+      return { authenticated: false, logout: false, redirectTo: "/login", error: error as Error };
     }
-
-    return {
-      authenticated: false,
-      logout: true,
-      redirectTo: "/login",
-    };
   },
   getPermissions: async () => {
-    const auth = Cookies.get(AUTH_COOKIE);
-    if (auth) {
-      const parsedUser = JSON.parse(auth) as AdminUser;
-      return [parsedUser.role];
-    }
-    return null;
+    const user = await getSession();
+    return user ? [user.role] : null;
   },
-  getIdentity: async () => {
-    const auth = Cookies.get(AUTH_COOKIE);
-    if (auth) {
-      return JSON.parse(auth) as AdminUser;
-    }
-    return null;
-  },
+  getIdentity: getSession,
   onError: async (error) => {
-    if (error.response?.status === 401) {
+    if ((error.statusCode ?? error.response?.status) === 401) {
       return {
         logout: true,
       };

@@ -8,6 +8,9 @@ const { chromium } = require('playwright-core');
   const base = process.env.ADMIN_TEST_URL || 'http://127.0.0.1:3215';
   assert.ok(['127.0.0.1', 'localhost'].includes(new URL(base).hostname), 'Browser test must target localhost');
   const context = await browser.newContext();
+  const admin = { id: 'admin-test', name: 'Test Admin', email: 'admin@example.test', role: 'ADMIN', deletedAt: null };
+  const tokenFor = role => `${Buffer.from(JSON.stringify({ sub: role === 'ADMIN' ? 'admin-test' : 'driver-test' })).toString('base64url')}.test-signature`;
+
   let rows = Array.from({ length: 21 }, (_, i) => ({ id: `block-${i}`, fromCountryCode: 'LB', toCountryCode: 'SY', transportType: null, reason: `Internal reason ${i}`, isActive: true, createdByAdminId: 'admin-test', createdAt: '2026-09-24T10:00:00Z', updatedAt: '2026-09-24T10:00:00Z' }));
   const requests = [];
   let duplicate = false;
@@ -17,6 +20,13 @@ const { chromium } = require('playwright-core');
     const url = new URL(request.url());
     // Intercept API paths even with a same-origin proxy; never write to a real backend.
     if (!url.pathname.startsWith('/admin/route-blocks')) {
+      if (url.pathname.startsWith('/admin/users/')) {
+        const allowed = request.headers().authorization === `Bearer ${tokenFor('ADMIN')}`;
+        return route.fulfill({ status: allowed ? 200 : 403, headers: { 'access-control-allow-origin': base, 'access-control-allow-headers': 'authorization,content-type' }, contentType: 'application/json', body: JSON.stringify(allowed ? admin : { message: 'Forbidden' }) });
+      }
+      if (['/admin/driver-reviews', '/admin/driver-earnings', '/admin/payments/reconciliation'].includes(url.pathname)) {
+        return route.fulfill({ status: 200, headers: { 'access-control-allow-origin': base, 'access-control-allow-headers': 'authorization,content-type' }, contentType: 'application/json', body: JSON.stringify(url.pathname === '/admin/driver-reviews' ? [] : { items: [], total: 0, latestRuns: [] }) });
+      }
       if (url.origin === base) return route.continue();
       return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
     }
@@ -49,18 +59,24 @@ const { chromium } = require('playwright-core');
   page.on('pageerror', error => errors.push(error.message));
   const visible = async locator => { await locator.waitFor({ state: 'visible' }); };
   const login = role => context.addCookies([
-    { name: 'token', value: 'test-token', url: base },
-    { name: 'auth', value: JSON.stringify({ id: 'admin-test', name: 'Test Admin', role }), url: base },
+    { name: 'token', value: tokenFor(role), url: base },
+    { name: 'auth', value: JSON.stringify({ ...admin, role: 'ADMIN' }), url: base },
   ]);
   try {
     await page.goto(`${base}/route-blocks`);
     await page.waitForURL(url => url.pathname === '/login');
-    console.log('PASS unauthenticated route redirects to login');
+    for (const route of ['/admin-users', '/driver-reviews', '/driver-earnings', '/payments-reconciliation', '/payment-disputes', '/delivery-operations', '/chat-reports', '/pickup-proof/view-image?proofId=test']) {
+      await page.goto(`${base}${route}`);
+      await page.waitForURL(url => url.pathname === '/login');
+    }
+    await page.goto(`${base}/account-deletion`);
+    assert.equal(new URL(page.url()).pathname, '/account-deletion');
+    console.log('PASS all operational routes require login; account deletion stays public');
     await login('DRIVER');
     await page.goto(`${base}/route-blocks`);
-    await visible(page.getByRole('alert').filter({ hasText: 'Administrator access is required.' }));
+    await page.waitForURL(url => url.pathname === '/login');
     assert.equal(requests.length, 0);
-    console.log('PASS non-admin UI is denied before API requests');
+    console.log('PASS non-admin token is denied despite a forged admin identity cookie');
     await login('ADMIN');
     await page.goto(`${base}/route-blocks`);
     await visible(page.getByText('21 blocks · Page 1 of 2'));
@@ -125,7 +141,7 @@ const { chromium } = require('playwright-core');
     assert.equal(updated.toCountryCode, 'FR');
     assert.equal(updated.transportType, null);
     assert.equal(updated.reason, null);
-    assert.ok(requests.every(request => request.authorization === 'Bearer test-token'));
+    assert.ok(requests.every(request => request.authorization === `Bearer ${tokenFor('ADMIN')}`));
     console.log('PASS edit, same-country block, null all-types/reason, and existing auth token');
     await page.goto(`${base}/route-blocks/edit/missing`);
     await visible(page.getByRole('alert').getByText('Route block not found.', { exact: true }));
@@ -137,6 +153,13 @@ const { chromium } = require('playwright-core');
     await visible(page.getByText('22 blocks · Page 1 of 2'));
     await page.setViewportSize({ width: 390, height: 844 });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), 'mobile page must not overflow horizontally');
+    for (const [route, title] of [['/driver-reviews', 'Driver Requests'], ['/driver-earnings', 'Driver Earnings'], ['/payments-reconciliation', 'Payments Reconciliation']]) {
+      await page.goto(`${base}${route}`);
+      await visible(page.getByRole('heading', { name: title, exact: true, level: 2 }));
+      await page.waitForLoadState('networkidle');
+      assert.equal(await page.locator('aside').count() <= 1, true);
+    }
+    console.log('PASS extracted driver reviews, earnings, and reconciliation screens render');
     assert.deepEqual(errors, []);
     console.log('PASS missing record, API permission error/retry, mobile width, no runtime errors');
   } finally {

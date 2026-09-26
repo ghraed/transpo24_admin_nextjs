@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "dev": "cross-env NODE_OPTIONS=--max_old_space_size=4096 refine dev",
@@ -11,8 +11,12 @@
     "start": "refine start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test:web-push": "tsc --module nodenext --moduleResolution nodenext --target es2022 --lib dom,es2022 --strict --esModuleInterop --skipLibCheck --noEmit false --outDir /tmp/transpo24-admin-web-push-tests src/lib/web-push/types.ts src/lib/web-push/shared.ts src/lib/web-push/shared.test.ts src/lib/web-push/client.test.ts && node --test /tmp/transpo24-admin-web-push-tests/*.test.js",
-    "refine": "refine"
+    "test:web-push": "node scripts/test-unit.cjs web-push",
+    "refine": "refine",
+    "test:auth": "node scripts/test-unit.cjs auth",
+    "test": "node scripts/test-unit.cjs",
+    "test:api": "node scripts/test-unit.cjs api",
+    "test:browser": "node scripts/test-admin-browser.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
@@ -96,5 +100,6 @@
   },
   "refine": {
     "projectId": "08di9l-BEZUcs-n6BYLY"
-  }
+  },
+  "packageManager": "pnpm@10.33.4"
 }

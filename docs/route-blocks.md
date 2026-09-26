@@ -17,12 +17,12 @@ warning should be removed only after those milestones are implemented and deploy
 
 ## Verification
 
-From `admin/Transpo_24`:
+From `admin`:
 
 ```sh
 npm run typecheck
-npm run test:web-push
-npx eslint src/app/route-blocks src/lib/route-blocks.ts src/providers/data-provider/index.ts src/app/_refine_context.tsx src/app/page.tsx src/components/refine-ui/layout/sidebar.tsx scripts/test-route-blocks-browser.cjs
+npm test
+npm run lint
 npm run build
 ```
 
@@ -30,14 +30,11 @@ Browser test (all API responses mocked; no real backend writes):
 
 ```sh
 npm install --prefix /tmp/transpo24-m5-browser --no-package-lock --ignore-scripts playwright-core
-# In a separate terminal, start the local built app:
-node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3215
-# Then:
-NODE_PATH=/tmp/transpo24-m5-browser/node_modules node scripts/test-route-blocks-browser.cjs
+# Starts a local mock API and the admin development server:
+NODE_PATH=/tmp/transpo24-m5-browser/node_modules npm run test:browser
 ```
 
-`CHROME_PATH` overrides `/usr/bin/google-chrome`; `ADMIN_TEST_URL` can override the
-localhost URL. Browser tooling stays outside project dependencies. The script checks
+`CHROME_PATH` overrides `/usr/bin/google-chrome`. The runner uses local ports 3215 and 3216. Browser tooling stays outside project dependencies. The script checks
 anonymous/non-admin access, server pagination and all filters, cancellation without
 writes, deactivation, duplicate reactivation and retry, directional create, edit,
 same-country/null-all-types/null-reason payloads, bearer auth, missing records,
