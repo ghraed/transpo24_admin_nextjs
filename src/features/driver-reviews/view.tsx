@@ -257,15 +257,19 @@ export default function DriverReviewsPage() {
           <DialogHeader>
             <DialogTitle>Decline Driver Review</DialogTitle>
             <DialogDescription>
-              This will mark the driver review request as declined. You can include an optional
-              internal reason.
+              Explain what the driver needs to correct. This reason will be shown to the driver.
             </DialogDescription>
           </DialogHeader>
 
+          <label className="text-sm font-medium" htmlFor="driver-decline-reason">Reason for driver</label>
           <Textarea
-            placeholder="Optional decline reason"
+            id="driver-decline-reason"
+            placeholder="Explain what the driver needs to correct"
             value={declineReason}
             onChange={(event) => setDeclineReason(event.target.value)}
+            maxLength={500}
+            required
+            aria-required="true"
           />
 
           <DialogFooter>
@@ -278,7 +282,7 @@ export default function DriverReviewsPage() {
             >
               Cancel
             </Button>
-            <Button variant="destructive" disabled={isMutating} onClick={handleDecline}>
+            <Button variant="destructive" disabled={isMutating || !declineReason.trim()} onClick={handleDecline}>
               {isMutating ? "Declining..." : "Decline"}
             </Button>
           </DialogFooter>

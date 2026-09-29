@@ -113,21 +113,21 @@ export function useDriverReviews() {
     );
   };
   const handleDecline = () => {
-    if (!activeReview) return;
+    if (!activeReview || !declineReason.trim()) return;
 
     mutate(
       {
         url: `/admin/driver-reviews/${activeReview.id}/decline`,
         method: "post",
         values: {
-          reason: declineReason.trim() || undefined,
+          reason: declineReason.trim(),
         },
         dataProviderName: "adminDriverReviews",
       },
       {
         onSuccess: (response) => {
           const updatedReview = response?.data as DriverReview | undefined;
-          const normalizedReason = declineReason.trim() || "Declined by admin review.";
+          const normalizedReason = declineReason.trim();
           setReviews((current) =>
             current.map((review) =>
               review.id === activeReview.id
