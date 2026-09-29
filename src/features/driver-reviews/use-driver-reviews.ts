@@ -3,7 +3,7 @@ import {
   WEB_PUSH_EVENT_NAME,
   useWebPushNotifications,
 } from "@/components/web-push/web-push-provider";
-import { showTestNotification } from "@/lib/web-push";
+import { sendServerTestNotification } from "@/lib/web-push";
 import { useCustom, useCustomMutation } from "@refinedev/core";
 import React from "react";
 import { toast } from "sonner";
@@ -152,8 +152,8 @@ export function useDriverReviews() {
     setIsTestingNotification(true);
 
     try {
-      await showTestNotification();
-      toast.success("Test browser notification sent to this device.");
+      await sendServerTestNotification();
+      toast.success("Server accepted the test notification for this browser.");
     } catch (error) {
       toast.error(
         error instanceof Error

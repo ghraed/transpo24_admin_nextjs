@@ -69,24 +69,15 @@ export async function getCurrentSubscription(): Promise<PushSubscription | null>
   return registration.pushManager.getSubscription();
 }
 
-export async function showTestNotification(): Promise<void> {
-  if (!isSupported()) {
-    throw new Error("Browser Web Push is not supported in this environment.");
+export async function sendServerTestNotification(): Promise<void> {
+  const subscription = await getCurrentSubscription();
+  if (!subscription) {
+    throw new Error("Enable browser notifications on this browser before testing.");
   }
 
-  if (getPermissionState() !== "granted") {
-    throw new Error("Browser notification permission has not been granted.");
-  }
-
-  const registration = await getReadyServiceWorker();
-
-  await registration.showNotification("Transpo24 Test Notification", {
-    body: "This is a local browser notification test from Driver Requests.",
-    tag: "transpo24-admin-test-notification",
-    data: {
-      url: "/driver-reviews",
-      source: "driver-reviews-test",
-    },
+  await syncSubscription(subscription);
+  await axiosInstance.post(`${API_URL}/notifications/web-push/subscriptions/test`, {
+    endpoint: subscription.endpoint,
   });
 }
 
@@ -137,10 +128,18 @@ export async function syncExistingSubscription(): Promise<void> {
     return;
   }
 
-  const subscription = await getCurrentSubscription();
+  const vapidPublicKey = getVapidPublicKey();
+  if (!vapidPublicKey) {
+    throw new Error("Web Push VAPID public key is missing.");
+  }
 
+  const registration = await getReadyServiceWorker();
+  let subscription = await registration.pushManager.getSubscription();
   if (!subscription) {
-    return;
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: base64UrlToUint8Array(vapidPublicKey) as BufferSource,
+    });
   }
 
   await syncSubscription(subscription);

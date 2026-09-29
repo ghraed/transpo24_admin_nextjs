@@ -120,22 +120,40 @@ export default function DriverReviewsPage() {
           <div className="space-y-1">
             <h3 className="font-semibold tracking-[-0.02em]">Review alerts</h3>
             <p className="text-sm leading-6 text-muted-foreground">
-              Test browser notifications after enabling them from the dashboard.
+              Enable notifications in this browser, then send a test through the API.
             </p>
+            {webPush.permission === "denied" ? (
+              <p className="text-sm text-destructive">Allow notifications for localhost:3000 in your browser site settings.</p>
+            ) : null}
+            {webPush.errorMessage ? (
+              <p className="text-sm text-destructive">{webPush.errorMessage}</p>
+            ) : null}
           </div>
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          className="rounded-full px-5"
-          disabled={isTestingNotification || webPush.status !== "subscribed"}
-          onClick={() => {
-            void handleTestNotification();
-          }}
-        >
-          {isTestingNotification ? <Loader2 className="h-4 w-4 animate-spin" /> : <BellRing className="h-4 w-4" />}
-          {isTestingNotification ? "Sending test..." : "Test notification"}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {webPush.isSupported && webPush.isConfigured && webPush.permission !== "denied" && webPush.status !== "subscribed" ? (
+            <Button
+              type="button"
+              className="rounded-full px-5"
+              disabled={webPush.status === "subscribing"}
+              onClick={() => { void webPush.enableNotifications(); }}
+            >
+              {webPush.status === "subscribing" ? "Enabling..." : "Enable notifications"}
+            </Button>
+          ) : null}
+          <Button
+            type="button"
+            variant="outline"
+            className="rounded-full px-5"
+            disabled={isTestingNotification || webPush.status !== "subscribed"}
+            onClick={() => {
+              void handleTestNotification();
+            }}
+          >
+            {isTestingNotification ? <Loader2 className="h-4 w-4 animate-spin" /> : <BellRing className="h-4 w-4" />}
+            {isTestingNotification ? "Sending test..." : "Test notification"}
+          </Button>
+        </div>
       </section>
 
       {query.isLoading ? (
