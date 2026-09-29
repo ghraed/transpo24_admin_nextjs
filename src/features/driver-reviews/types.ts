@@ -49,4 +49,5 @@ export type DriverReview = {
   submittedForReviewAt: string | null;
   onboardingDocuments: DriverReviewDocument[];
   vehicles: DriverReviewVehicle[];
+  vehicle: DriverReviewVehicle | null;
 };

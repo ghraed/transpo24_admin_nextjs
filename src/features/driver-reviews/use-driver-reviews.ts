@@ -23,6 +23,7 @@ export function useDriverReviews() {
     vehicle: DriverReviewVehicle;
   } | null>(null);
   const [declineReason, setDeclineReason] = React.useState("");
+  const [declineDocumentIds, setDeclineDocumentIds] = React.useState<string[]>([]);
   const [reviews, setReviews] = React.useState<DriverReview[]>([]);
   const [isTestingNotification, setIsTestingNotification] = React.useState(false);
   const [search, setSearch] = React.useState("");
@@ -113,7 +114,7 @@ export function useDriverReviews() {
     );
   };
   const handleDecline = () => {
-    if (!activeReview || !declineReason.trim()) return;
+    if (!activeReview || !declineReason.trim() || declineDocumentIds.length === 0) return;
 
     mutate(
       {
@@ -121,41 +122,21 @@ export function useDriverReviews() {
         method: "post",
         values: {
           reason: declineReason.trim(),
+          rejectedDocumentIds: declineDocumentIds,
         },
         dataProviderName: "adminDriverReviews",
       },
       {
         onSuccess: (response) => {
           const updatedReview = response?.data as DriverReview | undefined;
-          const normalizedReason = declineReason.trim();
-          setReviews((current) =>
-            current.map((review) =>
-              review.id === activeReview.id
-                ? updatedReview ?? {
-                  ...review,
-                  status: "REJECTED",
-                  vehicles: review.vehicles.map((vehicle) => ({
-                    ...vehicle,
-                    status: "REJECTED",
-                    isActive: false,
-                    rejectionReason: normalizedReason,
-                    documents: vehicle.documents.map((document) => ({
-                      ...document,
-                      status: "REJECTED",
-                      rejectionReason: normalizedReason,
-                    })),
-                  })),
-                  onboardingDocuments: review.onboardingDocuments.map((document) => ({
-                    ...document,
-                    status: "REJECTED",
-                    rejectionReason: normalizedReason,
-                  })),
-                }
-                : review,
-            ),
-          );
+          if (updatedReview) {
+            setReviews((current) => current.map((review) =>
+              review.id === activeReview.id ? updatedReview : review,
+            ));
+          }
           setActiveReview(null);
           setDeclineReason("");
+          setDeclineDocumentIds([]);
           toast.success("Driver declined successfully.");
           void query.refetch();
         },
@@ -193,6 +174,8 @@ export function useDriverReviews() {
     setApproveVehicle,
     declineReason,
     setDeclineReason,
+    declineDocumentIds,
+    setDeclineDocumentIds,
     reviews,
     isTestingNotification,
     search,

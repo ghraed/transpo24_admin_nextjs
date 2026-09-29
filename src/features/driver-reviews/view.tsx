@@ -41,7 +41,17 @@ import {
   XCircle
 } from "lucide-react";
 import { DriverReviewCard, ReviewMetric } from "./components";
+import { toAbsoluteDocumentUrl } from "./helpers";
 import { useDriverReviews } from "./use-driver-reviews";
+
+const personalReviewDocumentTypes = new Set([
+  "PERSONAL_SELFIE", "ID_FRONT", "ID_BACK", "DRIVING_LICENSE",
+]);
+const vehicleReviewDocumentTypes = new Set([
+  "VEHICLE_FRONT_PHOTO", "VEHICLE_REAR_PHOTO", "VEHICLE_SIDE_PHOTO",
+  "VEHICLE_LICENSE_PLATE_PHOTO", "VEHICLE_REGISTRATION_FRONT",
+  "VEHICLE_REGISTRATION_BACK", "VEHICLE_INSURANCE_DOCUMENT",
+]);
 
 export default function DriverReviewsPage() {
   const {
@@ -53,6 +63,8 @@ export default function DriverReviewsPage() {
     setApproveVehicle,
     declineReason,
     setDeclineReason,
+    declineDocumentIds,
+    setDeclineDocumentIds,
     reviews,
     isTestingNotification,
     search,
@@ -172,6 +184,7 @@ export default function DriverReviewsPage() {
                 onDecline={() => {
                   setActiveReview(review);
                   setDeclineReason("");
+                  setDeclineDocumentIds([]);
                 }}
               />
             ))}
@@ -211,7 +224,7 @@ export default function DriverReviewsPage() {
                 key={review.id}
                 review={review}
                 isMutating={isMutating}
-                onApproveVehicle={(vehicle) => setApproveVehicle({ review, vehicle })}
+                onApproveVehicle={review.status === "REJECTED" ? undefined : (vehicle) => setApproveVehicle({ review, vehicle })}
               />
             ))}
           </div>
@@ -250,6 +263,7 @@ export default function DriverReviewsPage() {
           if (!open) {
             setActiveReview(null);
             setDeclineReason("");
+            setDeclineDocumentIds([]);
           }
         }}
       >
@@ -257,14 +271,46 @@ export default function DriverReviewsPage() {
           <DialogHeader>
             <DialogTitle>Decline Driver Review</DialogTitle>
             <DialogDescription>
-              Explain what the driver needs to correct. This reason will be shown to the driver.
+              Select the files that need replacement and explain why.
             </DialogDescription>
           </DialogHeader>
 
-          <label className="text-sm font-medium" htmlFor="driver-decline-reason">Reason for driver</label>
+          <fieldset className="max-h-64 space-y-3 overflow-y-auto rounded-xl border p-3">
+            <legend className="px-1 text-sm font-semibold">Documents that need replacement</legend>
+            <p className="text-xs text-muted-foreground">Only selected documents will be rejected. All others remain usable.</p>
+            {activeReview?.onboardingDocuments.filter((document) => personalReviewDocumentTypes.has(document.type) && document.status !== "REJECTED").map((document) => (
+              <label key={document.id} className="flex items-start gap-3 text-sm">
+                <input
+                  type="checkbox"
+                  className="mt-1"
+                  checked={declineDocumentIds.includes(document.id)}
+                  onChange={(event) => setDeclineDocumentIds((current) =>
+                    event.target.checked ? [...current, document.id] : current.filter((id) => id !== document.id),
+                  )}
+                />
+                <span className="flex-1">{document.type.replaceAll("_", " ")} <span className="text-muted-foreground">(personal)</span></span>
+                <a href={toAbsoluteDocumentUrl(document.url)} target="_blank" rel="noreferrer" className="text-primary underline">View</a>
+              </label>
+            ))}
+            {activeReview?.vehicle?.documents.filter((document) => vehicleReviewDocumentTypes.has(document.type) && document.status !== "REJECTED").map((document) => (
+              <label key={document.id} className="flex items-start gap-3 text-sm">
+                <input
+                  type="checkbox"
+                  className="mt-1"
+                  checked={declineDocumentIds.includes(document.id)}
+                  onChange={(event) => setDeclineDocumentIds((current) =>
+                    event.target.checked ? [...current, document.id] : current.filter((id) => id !== document.id),
+                  )}
+                />
+                <span className="flex-1">{document.type.replaceAll("_", " ")} <span className="text-muted-foreground">({activeReview?.vehicle?.brand} {activeReview?.vehicle?.model})</span></span>
+                <a href={toAbsoluteDocumentUrl(document.url)} target="_blank" rel="noreferrer" className="text-primary underline">View</a>
+              </label>
+            ))}
+          </fieldset>
+          <label className="text-sm font-medium" htmlFor="driver-decline-reason">Reason for selected documents</label>
           <Textarea
             id="driver-decline-reason"
-            placeholder="Explain what the driver needs to correct"
+            placeholder="Explain what is wrong with the selected files"
             value={declineReason}
             onChange={(event) => setDeclineReason(event.target.value)}
             maxLength={500}
@@ -278,11 +324,12 @@ export default function DriverReviewsPage() {
               onClick={() => {
                 setActiveReview(null);
                 setDeclineReason("");
+                setDeclineDocumentIds([]);
               }}
             >
               Cancel
             </Button>
-            <Button variant="destructive" disabled={isMutating || !declineReason.trim()} onClick={handleDecline}>
+            <Button variant="destructive" disabled={isMutating || !declineReason.trim() || declineDocumentIds.length === 0} onClick={handleDecline}>
               {isMutating ? "Declining..." : "Decline"}
             </Button>
           </DialogFooter>
