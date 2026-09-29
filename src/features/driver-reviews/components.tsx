@@ -96,7 +96,7 @@ export function DriverReviewCard({
               <div className="flex items-center justify-between">
                 <div>
                   <h5 className="flex items-center gap-2 font-semibold"><CarFront className="h-4 w-4 text-primary" />Vehicle submissions</h5>
-                  <p className="mt-1 text-sm text-muted-foreground">Review and approve each vehicle independently.</p>
+                  <p className="mt-1 text-sm text-muted-foreground">The vehicle submitted for this driver review is marked below.</p>
                 </div>
                 <Badge className="rounded-full" variant="secondary">{review.vehicles.length} vehicles</Badge>
               </div>
@@ -104,7 +104,15 @@ export function DriverReviewCard({
               {review.vehicles.length ? (
                 <div className="grid gap-4 xl:grid-cols-2">
                   {review.vehicles.map((vehicle) => (
-                    <VehicleReviewCard key={vehicle.id} vehicle={vehicle} isMutating={isMutating} onApprove={onApproveVehicle} />
+                    <VehicleReviewCard
+                      key={vehicle.id}
+                      vehicle={vehicle}
+                      isMutating={isMutating}
+                      isSubmittedVehicle={review.reviewVehicleId === vehicle.id}
+                      onApprove={review.status === "PENDING_REVIEW" && review.reviewVehicleId && review.reviewVehicleId !== vehicle.id
+                        ? undefined
+                        : onApproveVehicle}
+                    />
                   ))}
                 </div>
               ) : (
@@ -118,14 +126,14 @@ export function DriverReviewCard({
   );
 }
 
-export function VehicleReviewCard({ vehicle, isMutating, onApprove }: { vehicle: DriverReviewVehicle; isMutating: boolean; onApprove?: (vehicle: DriverReviewVehicle) => void }) {
+export function VehicleReviewCard({ vehicle, isMutating, isSubmittedVehicle = false, onApprove }: { vehicle: DriverReviewVehicle; isMutating: boolean; isSubmittedVehicle?: boolean; onApprove?: (vehicle: DriverReviewVehicle) => void }) {
   const canApprove = vehicle.status === "PENDING_REVIEW" && vehicle.hasRequiredDocuments && vehicle.hasLoadCapacityProfile;
 
   return (
     <div className="rounded-2xl border border-border bg-card p-4 shadow-[0_10px_24px_-18px_rgba(17,24,39,0.22)]">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
-          <div className="flex flex-wrap items-center gap-2"><h6 className="font-semibold">{vehicle.brand} {vehicle.model} {vehicle.year}</h6><Badge className="rounded-full" variant={statusBadgeVariant(vehicle.status)}>{formatStatus(vehicle.status)}</Badge></div>
+          <div className="flex flex-wrap items-center gap-2"><h6 className="font-semibold">{vehicle.brand} {vehicle.model} {vehicle.year}</h6><Badge className="rounded-full" variant={statusBadgeVariant(vehicle.status)}>{formatStatus(vehicle.status)}</Badge>{isSubmittedVehicle ? <Badge className="rounded-full" variant="outline">Submitted for this review</Badge> : null}</div>
           <p className="text-sm text-muted-foreground">{formatStatus(vehicle.vehicleType)} <span className="px-1">·</span> Plate {vehicle.licensePlateNumber}</p>
           <div className="flex flex-wrap gap-2"><Badge variant={vehicle.hasRequiredDocuments ? "default" : "secondary"}>{vehicle.hasRequiredDocuments ? "Documents complete" : "Documents incomplete"}</Badge><Badge variant={vehicle.hasLoadCapacityProfile ? "default" : "secondary"}>{vehicle.hasLoadCapacityProfile ? "Capacity complete" : "Capacity incomplete"}</Badge></div>
         </div>

@@ -106,7 +106,7 @@ export function useDriverReviews() {
                 : review,
             ),
           );
-          toast.success("Vehicle approved successfully.");
+          toast.success(approveVehicle.review.status === "PENDING_REVIEW" ? "Driver and vehicle approved." : "Vehicle approved successfully.");
           setApproveVehicle(null);
           void query.refetch();
         },

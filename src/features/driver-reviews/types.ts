@@ -47,6 +47,7 @@ export type DriverReview = {
   identityDocumentKind: string | null;
   status: ReviewStatus;
   submittedForReviewAt: string | null;
+  reviewVehicleId: string | null;
   onboardingDocuments: DriverReviewDocument[];
   vehicles: DriverReviewVehicle[];
   vehicle: DriverReviewVehicle | null;

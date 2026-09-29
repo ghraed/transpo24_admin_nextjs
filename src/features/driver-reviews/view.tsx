@@ -244,7 +244,9 @@ export default function DriverReviewsPage() {
             <AlertDialogTitle>Approve vehicle</AlertDialogTitle>
             <AlertDialogDescription>
               {approveVehicle
-                ? `Approve the ${approveVehicle.vehicle.brand} ${approveVehicle.vehicle.model} for ${approveVehicle.review.name}? Only this vehicle and its documents will be approved.`
+                ? approveVehicle.review.status === "PENDING_REVIEW"
+                  ? `Approve ${approveVehicle.review.name}'s driver account and submitted ${approveVehicle.vehicle.brand} ${approveVehicle.vehicle.model}? The driver must set availability before receiving requests.`
+                  : `Approve the ${approveVehicle.vehicle.brand} ${approveVehicle.vehicle.model} for ${approveVehicle.review.name}?`
                 : "Approve this vehicle submission?"}
             </AlertDialogDescription>
           </AlertDialogHeader>
