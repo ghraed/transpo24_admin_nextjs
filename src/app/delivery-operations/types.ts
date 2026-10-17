@@ -28,6 +28,7 @@ export type DeliveryPhoto = {
 };
 
 export type DeliveryOperation = {
+  reservation?: { state: string; confirmationOpensAt: string; paymentDeadlineAt: string; paidAt: string | null } | null;
   id: string;
   status: string;
   service: string;
