@@ -57,6 +57,9 @@ export type DriverEarningAdminItem = {
   stripe: DriverEarningStripeStatus;
   grossAmount: number;
   platformFeeAmount: number;
+  customerPlatformFeeAmount?: number;
+  platformShareAmount?: number;
+  collectedAmount?: number;
   netAmount: number;
   currency: string;
   earningStatus: DriverEarningStatus;

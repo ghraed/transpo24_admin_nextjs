@@ -290,7 +290,7 @@ export default function DriverEarningsPage() {
                       <TableHead className="px-4">Driver</TableHead>
                       <TableHead className="px-4">Trip</TableHead>
                       <TableHead className="px-4">Gross</TableHead>
-                      <TableHead className="px-4">Platform Fee</TableHead>
+                      <TableHead className="px-4">Platform Revenue</TableHead>
                       <TableHead className="px-4">Amount</TableHead>
                       <TableHead className="px-4">Earning</TableHead>
                       <TableHead className="px-4">Payout</TableHead>
@@ -349,7 +349,7 @@ export default function DriverEarningsPage() {
                           {formatAmount(item.grossAmount, item.currency)}
                         </TableCell>
                         <TableCell className="px-4 py-4 font-medium">
-                          {formatAmount(item.platformFeeAmount, item.currency)}
+                          {formatAmount(item.platformShareAmount ?? item.platformFeeAmount, item.currency)}
                         </TableCell>
                         <TableCell className="px-4 py-4 font-medium">
                           {formatAmount(item.netAmount, item.currency)}
@@ -513,7 +513,7 @@ function EarningCard({ item, isRetrying, onRetry }: { item: DriverEarningAdminIt
           <div className="flex flex-wrap gap-2"><CollapsibleTrigger asChild><Button variant="outline" className="rounded-full px-5">{isOpen ? "Hide details" : "Open details"}<ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} /></Button></CollapsibleTrigger>{item.canRetry ? <Button variant="outline" className="rounded-full px-5" disabled={isRetrying} onClick={onRetry}>{isRetrying ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}Retry payout</Button> : null}</div>
         </div>
         <CollapsibleContent><div className="m-5 grid gap-4 border-t border-border/70 pt-5 md:m-6 xl:grid-cols-3">
-          <EarningDetailSection title="Payout details"><DetailPair label="Gross amount" value={formatAmount(item.grossAmount, item.currency)} /><DetailPair label="Platform fee" value={formatAmount(item.platformFeeAmount, item.currency)} /><DetailPair label="Net amount" value={formatAmount(item.netAmount, item.currency)} /><DetailPair label="Last attempt" value={formatDate(item.lastPayoutAttemptAt)} /><DetailPair label="Next retry" value={formatDate(item.nextPayoutRetryAt)} /></EarningDetailSection>
+          <EarningDetailSection title="Payout details"><DetailPair label="Gross amount" value={formatAmount(item.grossAmount, item.currency)} /><DetailPair label="Driver commission" value={formatAmount(item.platformFeeAmount, item.currency)} /><DetailPair label="Client commission" value={formatAmount(item.customerPlatformFeeAmount ?? 0, item.currency)} /><DetailPair label="Platform revenue" value={formatAmount(item.platformShareAmount ?? item.platformFeeAmount, item.currency)} />{item.collectedAmount !== undefined ? <DetailPair label="Client payment" value={formatAmount(item.collectedAmount, item.currency)} /> : null}<DetailPair label="Net amount" value={formatAmount(item.netAmount, item.currency)} /><DetailPair label="Last attempt" value={formatDate(item.lastPayoutAttemptAt)} /><DetailPair label="Next retry" value={formatDate(item.nextPayoutRetryAt)} /></EarningDetailSection>
           <EarningDetailSection title="Transfer diagnostics"><DetailPair label="Transfer ID" value={item.stripeTransferId ?? "-"} /><DetailPair label="Stripe status" value={item.stripeTransferStatus ?? "-"} />{item.payoutFailureReason ? <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive">{item.payoutFailureReason}</div> : <div className="rounded-xl border border-border/70 bg-background/60 px-3 py-2 text-sm text-muted-foreground">No payout failure reason recorded.</div>}{!item.canRetry ? <p className="text-sm text-muted-foreground">{item.retryBlockedReason ?? "Retry is not available."}</p> : null}</EarningDetailSection>
           <EarningDetailSection title="Additional charges">{item.additionalCharges.length ? item.additionalCharges.map((charge) => <div key={charge.id} className="rounded-xl border border-border/70 bg-background p-3 text-sm"><div className="font-medium">{formatAmount(charge.totalChargeAmount, charge.currency)}</div><div className="mt-1 text-muted-foreground">{charge.status} · {formatAdditionalChargePaymentOption(charge)}</div><div className="mt-1 text-xs text-muted-foreground">Added {formatDate(charge.createdAt)}</div></div>) : <div className="rounded-xl border border-dashed border-border/80 px-3 py-4 text-sm text-muted-foreground">No additional charges.</div>}</EarningDetailSection>
         </div></CollapsibleContent>
