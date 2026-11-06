@@ -27,6 +27,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { API_URL, axiosInstance } from "@/providers/data-provider";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { DeliveryOperation, DeliveryOperationsResponse, DeliveryOperationsView } from "./types";
 
@@ -116,7 +118,7 @@ export default function DeliveryOperationsPage() {
       {query.isLoading ? <div className="rounded-3xl border border-border bg-card py-16 text-center text-sm text-muted-foreground">Loading delivery relationships…</div> : null}
       {query.error ? <div className="rounded-3xl border border-destructive/30 bg-destructive/5 p-5 text-sm text-destructive">{query.error instanceof Error ? query.error.message : "Could not load delivery operations."}</div> : null}
       {!query.isLoading && !query.error && !response?.items?.length ? <div className="rounded-3xl border border-dashed border-border bg-card py-16 text-center text-sm text-muted-foreground">No requests match this view.</div> : null}
-      {response?.items?.length ? <section className="grid gap-4">{response.items.map((item) => <RequestRow key={item.id} item={item} />)}</section> : null}
+      {response?.items?.length ? <section className="grid gap-4">{response.items.map((item) => <RequestRow key={item.id} item={item} onUpdated={() => void query.refetch()} />)}</section> : null}
       {response?.items?.length ? <div className="flex items-center justify-between gap-3 rounded-3xl border border-border bg-card px-5 py-4 text-sm text-muted-foreground"><span>Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, response.total)} of {response.total}</span><div className="flex gap-2"><Button variant="outline" size="sm" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page === 1}><ChevronLeft className="h-4 w-4" /> Previous</Button><Button variant="outline" size="sm" onClick={() => setPage((current) => Math.min(totalPages, current + 1))} disabled={page === totalPages}>Next <ChevronRight className="h-4 w-4" /></Button></div></div> : null}
     </ListView>
   );
@@ -126,8 +128,40 @@ function SummaryCard({ title, value, icon, accent = "text-foreground" }: { title
   return <Card className="rounded-3xl border-border/80 shadow-[0_10px_22px_-19px_rgba(17,24,39,0.35)]"><CardContent className="flex items-center justify-between p-5"><div><div className="text-sm text-muted-foreground">{title}</div><div className={`mt-1 text-3xl font-semibold tracking-[-0.04em] ${accent}`}>{value}</div></div><div className="rounded-2xl bg-muted p-3 text-muted-foreground">{icon}</div></CardContent></Card>;
 }
 
-function RequestRow({ item }: { item: DeliveryOperation }) {
+function RequestRow({ item, onUpdated }: { item: DeliveryOperation; onUpdated: () => void }) {
   const acceptedOffer = item.offers.find((offer) => offer.id === item.acceptedOfferId);
+  const [reviewOpen, setReviewOpen] = React.useState(false);
+  const [reason, setReason] = React.useState("");
+  const [confirmation, setConfirmation] = React.useState("");
+  const [refundError, setRefundError] = React.useState("");
+  const [refundResult, setRefundResult] = React.useState("");
+  const [submittingRefund, setSubmittingRefund] = React.useState(false);
+  const amount = item.payment.capturedAmount;
+  const currency = item.payment.currency;
+  const confirmationPhrase = amount !== null && currency ? `REFUND ${amount.toFixed(2)} ${currency}` : "";
+  const canReviewRefund = ["DELIVERED", "COMPLETED"].includes(item.status) && item.payment.status === "PAYMENT_CAPTURED" && amount !== null && amount > 0 && Boolean(currency);
+
+  async function submitRefund(): Promise<void> {
+    if (!canReviewRefund || !confirmationPhrase || confirmation !== confirmationPhrase || reason.trim().length < 10 || amount === null) return;
+    setSubmittingRefund(true);
+    setRefundError("");
+    setRefundResult("");
+    try {
+      const response = await axiosInstance.post<{ status: "PENDING" | "SUCCEEDED"; refundId: string | null }>(
+        `${API_URL}/admin/payments/trips/${encodeURIComponent(item.id)}/refund`,
+        { expectedAmount: amount, reason: reason.trim() },
+      );
+      setRefundResult(response.data.status === "SUCCEEDED"
+        ? `Stripe refund ${response.data.refundId} succeeded. Review the driver payout history and reconciliation.`
+        : `Stripe refund ${response.data.refundId ?? ""} is pending. Refresh before further action.`);
+      setReviewOpen(false);
+      onUpdated();
+    } catch (caught) {
+      setRefundError(caught instanceof Error ? caught.message : "Refund review failed. Check reconciliation before retrying.");
+    } finally {
+      setSubmittingRefund(false);
+    }
+  }
   return <Collapsible>
     <article className="overflow-hidden rounded-3xl border border-border bg-card shadow-[0_10px_24px_-18px_rgba(17,24,39,0.28)]">
     <div className="flex flex-col gap-4 px-5 py-5 lg:flex-row lg:items-start lg:justify-between md:px-6">
@@ -139,7 +173,7 @@ function RequestRow({ item }: { item: DeliveryOperation }) {
     <CollapsibleContent><div className="m-5 grid gap-4 border-t border-border/70 pt-5 md:m-6 xl:grid-cols-[1.1fr_1.25fr_1fr]">
       <InfoSection title="Client request" icon={<UserRound className="h-4 w-4" />}><Party party={item.customer} /><RouteSummary pickup={item.route.pickupAddress} dropoff={item.route.dropoffAddress} /><DetailRows entries={[['Scheduled pickup', formatDate(item.scheduledPickupAt)], ['Submitted', formatDate(item.submittedAt ?? item.createdAt)], ['Item', item.item.title ?? label(item.item.type)], ['Description', item.item.description ?? '—']]} /><ItemDetails details={item.item.details} /></InfoSection>
       <InfoSection title="Offers & assignment" icon={<Send className="h-4 w-4" />}><div className="rounded-xl border bg-background p-3"><div className="text-xs font-medium text-muted-foreground">Selected driver</div>{item.assignedDriver ? <><Party party={item.assignedDriver} /><div className="mt-2 text-sm">{acceptedOffer ? `${formatAmount(acceptedOffer.price, acceptedOffer.currency)} · accepted offer` : "Assigned directly"}</div></> : <div className="mt-2 text-sm text-muted-foreground">No driver has taken this delivery.</div>}</div><div className="space-y-2">{item.offers.length ? item.offers.map((offer) => <Offer key={offer.id} offer={offer} accepted={offer.id === item.acceptedOfferId} />) : <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">No driver offers sent yet.</div>}</div></InfoSection>
-      <InfoSection title="Delivery & settlement" icon={<Truck className="h-4 w-4" />}><DeliveryTimeline item={item} /><div className="rounded-xl border bg-background p-3"><div className="mb-2 flex items-center gap-2 text-sm font-medium"><CircleDollarSign className="h-4 w-4 text-muted-foreground" /> Payment</div><DetailRows entries={[["Reservation", item.reservation ? label(item.reservation.state) : "—"], ["Payment deadline", formatDate(item.reservation?.paymentDeadlineAt ?? null)], ["Final price", formatAmount(item.payment.finalPrice, item.payment.currency)], ["Payment", label(item.payment.status)], ["Method", label(item.payment.method)], ["Held / captured", `${formatAmount(item.payment.heldAmount, item.payment.currency)} / ${formatAmount(item.payment.capturedAmount, item.payment.currency)}`]]} /></div><Proofs item={item} /></InfoSection>
+      <InfoSection title="Delivery & settlement" icon={<Truck className="h-4 w-4" />}><DeliveryTimeline item={item} /><div className="rounded-xl border bg-background p-3"><div className="mb-2 flex items-center gap-2 text-sm font-medium"><CircleDollarSign className="h-4 w-4 text-muted-foreground" /> Payment</div><DetailRows entries={[["Reservation", item.reservation ? label(item.reservation.state) : "—"], ["Payment deadline", formatDate(item.reservation?.paymentDeadlineAt ?? null)], ["Final price", formatAmount(item.payment.finalPrice, item.payment.currency)], ["Payment", label(item.payment.status)], ["Method", label(item.payment.method)], ["Held / captured", `${formatAmount(item.payment.heldAmount, item.payment.currency)} / ${formatAmount(item.payment.capturedAmount, item.payment.currency)}`]]} /></div>{refundResult ? <p role="status" className="rounded-xl border p-3 text-sm">{refundResult}</p> : null}{canReviewRefund ? <div className="space-y-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950"><p>Full refund requires an administrator review. A direct-charge driver balance may already have been credited; payout history stays visible for reconciliation.</p><Button type="button" variant="outline" onClick={() => setReviewOpen((open) => !open)}>{reviewOpen ? "Close refund review" : "Review full refund"}</Button>{reviewOpen ? <div className="space-y-2"><p>Refund {formatAmount(amount, currency)} for request {item.id}.</p><label className="block font-medium" htmlFor={`refund-reason-${item.id}`}>Review reason</label><Textarea id={`refund-reason-${item.id}`} value={reason} onChange={(event) => setReason(event.target.value)} maxLength={300} /><label className="block font-medium" htmlFor={`refund-confirm-${item.id}`}>Type {confirmationPhrase} to confirm</label><Input id={`refund-confirm-${item.id}`} value={confirmation} onChange={(event) => setConfirmation(event.target.value)} autoComplete="off" /><Button type="button" variant="destructive" disabled={submittingRefund || confirmation !== confirmationPhrase || reason.trim().length < 10} onClick={() => void submitRefund()}>{submittingRefund ? "Submitting…" : "Submit reviewed refund"}</Button>{refundError ? <p role="alert">{refundError}</p> : null}</div> : null}</div> : null}<Proofs item={item} /></InfoSection>
       <RequestDocuments requestId={item.id} />
     </div></CollapsibleContent>
     </article>
